@@ -41,7 +41,7 @@ The core logic revolves around a cycle of **Generation**, **Scoring**, and **Lea
 | **Warehouse** | BigQuery | Structured query engine for filtering millions of candidates by score. |
 
 ---
-###[Notes: Code is not published as part of this repository]
+*[Notes: Codes are not published as part of this repository]*
 ## 5. Directory Map
 *   `workspace/`: Operational scripts and temporary artifacts.
 *   `pocket2mol-container/`: Source code for the Generator.
