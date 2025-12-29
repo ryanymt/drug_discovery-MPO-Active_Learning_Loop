@@ -1,4 +1,5 @@
 # Gap Analysis: Closing the Active Learning Loop
+## Notes: These pipeline gap are implemented of 29 Dec 2025. Keeping this document as development trace
 
 ## Current State
 The current pipeline (`00-mock-pipeline.json` / `01-prod-pipeline.json`) is **Open Loop**:
