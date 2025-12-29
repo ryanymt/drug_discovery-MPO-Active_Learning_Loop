@@ -41,5 +41,5 @@ Dive into the detailed system design:
 See the full breakdown of the Cycle 1 vs Cycle 2 analysis in the [Final Project Report](results/final_project_report.md).
 
 ---
-*Note: This repository contains architectural documentation and result artifacts. Proprietary code and container definitions are omitted.*
+*Note: This repository contains architectural documentation and result artifacts. Development code and container definitions are omitted.*
 
