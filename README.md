@@ -1,6 +1,5 @@
 # Cloud-Native Active Learning for Drug Discovery
-### Author
-* **Author:** Ryan Ye Min Thein
+### 
 * **GitHub:** [ryanymt](https://github.com/ryanymt)
 
 ## Overview
