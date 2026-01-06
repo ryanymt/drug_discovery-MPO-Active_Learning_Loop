@@ -1,65 +1,69 @@
-# Architecture: Scalable FEP Strategy (The 13,000 GPU Problem)
+# Architecture: Scaling Strategy (MM-GBSA & Batch)
 
-**Notes**: The development test was run with 10 molecules out of top 100, not 1,000.
-**Context**: Running FEP for 1,000 molecules.
-**Scale**: 1,000 Mols $\times$ 13 Windows = **13,000 GPU Tasks**.
+**Context**: Production scoring of 100,000 molecules using MM-GBSA.
+**Scale**: 1000 - 100,000 Tasks.
+**Workload**: ~1 hour per task (Molecular Dynamics simulation).
 
 ## 1. The Constraints
 
-Running 13,000 concurrent GPU tasks is not a code problem; it's a **Physics & Quota** problem.
+Scaling to 100,000 concurrent simulations presents specific infrastructure challenges driven by **Spot Availability** and **API Rate Limits**.
 
-### A. Quota Wall
-*   **Availability**: Getting 13,000 L4 GPUs in a single GCP zone (e.g., `us-central1-a`) is impossible, especially for Spot.
-*   **Solution**: **Multi-Region Dispatch**. The Batch Job must allow `allowedLocations: ["us-central1", "us-east1", "us-west1", "europe-west4"]`.
+### A. Quota & Hardware Availability
+*   **Resource**: NVIDIA L4 GPUs.
+*   **Constraint**: Obtaining thousands of L4 GPUs in a single zone simultaneously is difficult, particularly for Spot instances.
+*   **Solution**: **Multi-Region Dispatch** involves configuring the Batch Job to allow multiple zones (e.g., `us-central1`, `us-east1`, `europe-west4`), enabling the scheduler to hunt for available capacity globally.
 
-### B. Storage Bandwidth (The Silent Killer)
-*   **Scenario**: 13,000 VMs start simultaneously.
-*   **Startup Storm**: 13,000 $\times$ Docker Pull (5GB) + Input Download. This will throttle the GCS bucket or Artifact Registry.
-*   **Checkpoint Storm**: If using Option 2 (Checkpointing), 13,000 VMs writing 50MB files every 10 minutes.
-    *   **Real Risk**: bandwidth is manageable (1 TB/min), but **API Rate Limiting (429 Too Many Requests)** is the killer. 13,000 synchronous `gsutil cp` calls will trigger GCS denial-of-service protection.
-    *   **Mitigation**: **Jitter** (Randomized delays) is mandatory.
-
----
-
-## 2. Option Analysis at Scale
-
-### Option 1: Task Retries (No Checkpoint)
-**"The Brute Force Approach"**
-
-*   **Scaling Behavior**:
-    *   **Bandwidth**: Low. Only reads at start, writes at end.
-    *   **Spot Risk**: **Severe**. With 13,000 tasks, Preemption Rate is a probability game. If the rate is 5% per hour, probability of a 7-hour task surviving is $(0.95)^7 \approx 70\%$. Approximately 30% of tasks will require retries.
-    *   **Cost Impact**: Costs are incurred for the 30% waste.
-*   **Verdict**: Viable only if concurrency is limited (e.g., "Rolling Batch" of 50 molecules at a time) to avoid triggering aggressive preemption logic in the zone.
-
-### Option 2: Checkpoint & Resume
-**"The Robust Approach"**
-
-*   **Scaling Behavior**:
-    *   **Bandwidth**: High. The "Watchdog" syncer adds constant background noise.
-    *   **Spot Risk**: **Negligible**. Preemptions are just speed bumps.
-    *   **Throughput**: Higher effective throughput because progress is not lost.
-*   **Implementation Detail**:
-    *   **Watchdog**: A lightweight Bash background loop. No need for sidecar containers.
-    *   **Jitter**: `sleep $(( 600 + RANDOM % 120 ))` is mandatory to spread API load.
+### B. The "Startup Storm"
+*   **Scenario**: Launching 10,000 VMs simultaneously creates a spike in API calls and download requests.
+*   **Impact**:
+    *   **Container Registry**: Throttling on `docker pull`.
+    *   **GCS**: 429 (Too Many Requests) errors on input downloads.
+*   **Mitigation**: Native Batch Throttling (see below).
 
 ---
 
-## 3. Recommended Strategy: "Native Batch Throttling"
+## 2. Execution Strategy: "Many Small Tasks"
 
-Do not build a custom orchestrator. Use Google Cloud Batch's built-in queue management.
+For the previous FEP workload (7+ hours), a "Checkpoint & Resume" strategy was required to handle preemptions. However, the move to MM-GBSA (~1 hour runtime) allows for a simpler, more robust approach.
 
-### Architecture
-1.  **Submission**: Submit larger jobs (e.g., 50 molecules = 650 tasks) or one massive Array Job.
-2.  **Throttling**: Use the `parallelism` field in the Batch Job Spec.
-    *   `taskCount`: 13,000 (Total work)
-    *   `parallelism`: 500 (Max concurrent GPUs)
-3.  **Result**:
-    *   Google queues the 12,500 pending tasks automatically.
-    *   As one task finishes, the Next task starts.
-    *   **Benefit**: Keeps the system within Quota limits and smooths out the "Startup Storm" over time without writing any custom queue logic.
+### The Strategy
+**"Fail Fast, Retry Often"**
 
-### The "Hybrid" Checkpoint
-For the 1,000 molecule scale, **Option 2 (Checkpointing) is superior**.
-*   **Reason**: At 13,000 tasks, maintenance windows, stockouts, and preemptions are inevitable. Relying on luck (Option 1) for 13,000 dice rolls is statistically poor.
-*   **Cost**: The saved compute from not re-running 7-hour jobs pays for the implementation effort.
+1.  **Atomicity**: Each task processes a single molecule (or a small batch of 10).
+2.  **No Checkpointing**: The simulation is treated as atomic. If a node is preempted at minute 55, the task is marked `FAILED` and requeued from minute 0.
+3.  **Rationale**:
+    *   **Simplicity**: Eliminates complex watchdog scripts and synchronization logic.
+    *   **Efficiency**: Losing 1 hour of compute on a Spot instance is financially negligible compared to the engineering cost of maintaining stateful resume logic.
+    *   **Throughput**: Google Cloud Batch handles the retry loop automatically.
+
+---
+
+## 3. Infrastructure Implementation
+
+### Native Batch Throttling
+To mitigate the "Startup Storm" and manage Quota usage without an external orchestrator, the `parallelism` field in the Batch Job Specification is utilized.
+
+#### Configuration Example
+```json
+{
+    "taskGroups": [
+        {
+            "taskCount": 100000,
+            "parallelism": 500
+        }
+    ]
+}
+```
+
+#### Behavior
+1.  **Queueing**: All 100,000 tasks are submitted to the Google Cloud Batch queue immediately.
+2.  **Throttling**: The service ensures only 500 VMs are active at any given second.
+3.  **Rolling Execution**: As one task completes (or fails), a new task is dequeued to take its place.
+4.  **Benefit**: This flattens the API usage curve and keeps the active GPU count within the project's quota limits, preventing "Quota Exceeded" errors.
+
+### Artifact Management
+To avoid performance degradation from listing valid outputs (The "Small File Problem"):
+*   **No Listing**: Downstream steps do not scan the output directory for `*.csv`.
+*   **Manifest Injection**: The job is passed a pre-computed CSV Manifest.
+*   **Determinism**: Output paths are deterministic (`shard_${TASK_ID}.csv`).
+*   **Consolidation**: A "Map-Reduce" style script aggregates the results by iterating through the known task IDs rather than traversing the filesystem.
