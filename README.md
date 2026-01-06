@@ -44,10 +44,10 @@ Dive into the detailed system design:
 
 1.  [Architecture Overview](architecture/00_Architecture_Overview.md) - High-level diagrams and flow.
 2.  [Generative Engine](components_notes/01_Pocket2Mol_Generator.md) - Pocket2Mol fine-tuning process.
-3.  [The Oracle](architecture/03_Oracle_FEP.md) - Using GROMACS MM-GBSA as Ground Truth.
-4.  [The Critic](architecture/04_Proxy_Model_XGBoost.md) - Surrogate modeling for rapid screening.
-5.  [Strategy: Diversity](architecture/07_Strategy_Mode_Collapse.md) - Mitigating mode collapse in generative models.
-6.  [Engineering Log](architecture/99_engineering_notes.md) - Detailed run notes.
+3.  [The Oracle](components_notes/03_Oracle_MM-GBSA.md) - Using GROMACS MM-GBSA as Ground Truth.
+4.  [The Critic](components_notes/04_Proxy_Model_XGBoost.md) - Surrogate modeling for rapid screening.
+5.  [Strategy: Diversity](architecture/03_Strategy_Mode_Collapse.md) - Mitigating mode collapse in generative models.
+6.  [Engineering Log](architecture/01_engineering_notes.md) - Detailed run notes.
 
 ## Results
 See the full analysis in the evaluation notebook: `results_100k/cycle2_evaluation.ipynb`.
