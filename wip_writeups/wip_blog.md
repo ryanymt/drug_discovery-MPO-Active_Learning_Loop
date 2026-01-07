@@ -15,7 +15,7 @@ To bridge this divide, we propose "BioOps" (Biotech Operations), a universal ope
 This white paper outlines a platform agnostic strategy for BioOps on Google Cloud, built on three pillars:
 
 1. **The Active Learning Engine:** Moving from "brute force screening" to "intelligent search." We utilize a "Teacher-Student" architecture (Surrogate Modeling) where high cost validation methods (the "Teacher") selectively train fast inference models (the "Student"). This allows the system to navigate high dimensional Pareto Frontiers, optimizing for multiple conflicting biological and physical constraints simultaneously.
-2. **Elastic Infrastructure:** Breaking the validation bottleneck requires massive, on-demand compute. We demonstrate how Google Cloud Batch allows R&D teams to "burst" to thousands of cores/GPUs, paralleling weeks of validation work into hours.
+2. **Elastic Infrastructure:** Breaking the validation bottleneck requires massive, ondemand compute. We demonstrate how Google Cloud Batch allows R&D teams to "burst" to thousands of cores/GPUs, paralleling weeks of validation work into hours.
 3. **Governance & Lineage:** Moving from "artisanal science" to regulated engineering requires full traceability. We show how Vertex AI Pipelines creates an immutable audit trail, ensuring every biological candidate can be traced back to the specific data and model version that created it.
 
 **Proof of Value**
@@ -133,7 +133,7 @@ To solve the "Fidelity Barrier," the platform utilizes Google Cloud Batch. Unlik
 
 While many platforms have "pipelines," the core differentiator of this architecture is its brain. We employ Vertex AI Vizier as the centralized "Strategist."
 
-Built on the same technology Google uses to optimize its own internal systems, Vizier is a black-box optimization service designed for complex, high dimensional search spaces.
+Built on the same technology Google uses to optimize its own internal systems, Vizier is a blackbox optimization service designed for complex, high dimensional search spaces.
 
 * **Beyond Grid Search:** Instead of simple random or grid searches, Vizier utilizes advanced Bayesian Optimization algorithms to actively learn the "shape" of the biological landscape.
 * **Multi-Objective Optimization:** Vizier natively handles the Pareto Frontier, simultaneously balancing conflicting metrics (e.g., maximizing binding affinity while minimizing molecular weight) without requiring the scientist to manually weight these parameters.
