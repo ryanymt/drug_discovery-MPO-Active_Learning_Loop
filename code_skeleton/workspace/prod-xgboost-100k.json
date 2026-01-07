@@ -1,0 +1,62 @@
+{
+    "name": "projects/gcda-apac-sc/locations/us-central1/jobs/prod-xgboost-100k",
+    "taskGroups": [
+        {
+            "taskCount": "1",
+            "parallelism": "1",
+            "taskSpec": {
+                "runnables": [
+                    {
+                        "container": {
+                            "imageUri": "us-central1-docker.pkg.dev/gcda-apac-sc/drug-discovery-containers/rdkit:latest",
+                            "entrypoint": "/bin/bash",
+                            "commands": [
+                                "-c",
+                                "pip install xgboost scikit-learn pandas joblib && cp /mnt/disks/gcs/input/scripts/train_xgboost.py . && python3 train_xgboost.py --train /mnt/disks/gcs/input/training/dataset.csv --output_model /mnt/disks/gcs/models/xgboost_proxy.joblib"
+                            ],
+                            "volumes": [
+                                "/mnt/disks/gcs/input:/mnt/disks/gcs/input:rw",
+                                "/mnt/disks/gcs/models:/mnt/disks/gcs/models:rw"
+                            ]
+                        }
+                    }
+                ],
+                "computeResource": {
+                    "cpuMilli": "4000",
+                    "memoryMib": "15000"
+                },
+                "maxRetryCount": 1,
+                "volumes": [
+                    {
+                        "gcs": {
+                            "remotePath": "ryanymt/input/"
+                        },
+                        "mountPath": "/mnt/disks/gcs/input"
+                    },
+                    {
+                        "gcs": {
+                            "remotePath": "ryanymt/models/"
+                        },
+                        "mountPath": "/mnt/disks/gcs/models"
+                    }
+                ]
+            }
+        }
+    ],
+    "allocationPolicy": {
+        "instances": [
+            {
+                "policy": {
+                    "provisioningModel": "SPOT",
+                    "machineType": "e2-standard-4",
+                    "bootDisk": {
+                        "sizeGb": "50"
+                    }
+                }
+            }
+        ]
+    },
+    "logsPolicy": {
+        "destination": "CLOUD_LOGGING"
+    }
+}

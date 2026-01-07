@@ -1,0 +1,70 @@
+{
+    "name": "projects/gcda-apac-sc/locations/us-central1/jobs/prod-gnina-100k",
+    "taskGroups": [
+        {
+            "taskSpec": {
+                "runnables": [
+                    {
+                        "container": {
+                            "imageUri": "us-central1-docker.pkg.dev/gcda-apac-sc/drug-discovery-containers/gnina:latest",
+                            "entrypoint": "/bin/bash",
+                            "commands": [
+                                "-c",
+                                "awk -F, 'NR>1 && (NR-2) % 100 == '$BATCH_TASK_INDEX' {print $2}' /mnt/disks/gcs/output/consolidated/manifest.csv > /tmp/smiles.txt && cp /mnt/disks/gcs/input/scripts/run_gnina_optimized.sh /tmp/run_gnina.sh && chmod +x /tmp/run_gnina.sh && /tmp/run_gnina.sh /tmp/smiles.txt /mnt/disks/gcs/input/4yhj.pdb /mnt/disks/gcs/output/prod_100k/gnina/shard_${BATCH_TASK_INDEX} 0 1"
+                            ],
+                            "volumes": [
+                                "/mnt/disks/gcs/output:/mnt/disks/gcs/output:rw",
+                                "/mnt/disks/gcs/input:/mnt/disks/gcs/input:rw"
+                            ]
+                        }
+                    }
+                ],
+                "computeResource": {
+                    "cpuMilli": "16000",
+                    "memoryMib": "65536"
+                },
+                "maxRetryCount": 3,
+                "volumes": [
+                    {
+                        "gcs": {
+                            "remotePath": "ryanymt/output/"
+                        },
+                        "mountPath": "/mnt/disks/gcs/output"
+                    },
+                    {
+                        "gcs": {
+                            "remotePath": "ryanymt/input/"
+                        },
+                        "mountPath": "/mnt/disks/gcs/input"
+                    }
+                ]
+            },
+            "taskCount": "100",
+            "parallelism": "100"
+        }
+    ],
+    "allocationPolicy": {
+        "instances": [
+            {
+                "installGpuDrivers": true,
+                "policy": {
+                    "provisioningModel": "SPOT",
+                    "machineType": "g2-standard-16",
+                    "accelerators": [
+                        {
+                            "type": "nvidia-l4",
+                            "count": "1",
+                            "installGpuDrivers": true
+                        }
+                    ],
+                    "bootDisk": {
+                        "sizeGb": "100"
+                    }
+                }
+            }
+        ]
+    },
+    "logsPolicy": {
+        "destination": "CLOUD_LOGGING"
+    }
+}

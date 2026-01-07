@@ -3,19 +3,19 @@
 The Oracle provides the high-fidelity signal that trains the Proxy Model.
 
 ## 1. Production Oracle: GROMACS MM-GBSA
-The production oracle utilizes **MM-GBSA (Molecular Mechanics-Generalized Born Surface Area)**. This method offers an optimal trade-off between physical accuracy and computational throughput, allowing thousands of candidates to be scored at a fraction of the cost of FEP.
+We have transitioned from FEP to **MM-GBSA (Molecular Mechanics-Generalized Born Surface Area)** for our production oracle. This method offers an optimal trade-off between physical accuracy and computational throughput, allowing us to score thousands of candidates at a fraction of the cost of FEP.
 
 ### Mechanics
 *   **Method:** End-Point Free Energy Calculation.
 *   **Protocol:** Explicit solvent Molecular Dynamics (MD) simulation followed by implicit solvent energy analysis.
 *   **Theory:** $\Delta G_{bind} = \Delta H - T\Delta S \approx \Delta E_{MM} + \Delta G_{sol} - T\Delta S$.
-*   **Implementation:** The system uses `gmx_MMPBSA` (AmberTools binding) on GROMACS trajectories.
+*   **Implementation:** We use `gmx_MMPBSA` (AmberTools binding) on GROMACS trajectories.
 
 ### Infrastructure
 *   **Compute:** Google Cloud Batch (Vertex AI Pipelines orchestration).
 *   **Scale:** One task per molecule (Embarrassingly Parallel).
 *   **Hardware:** NVIDIA L4 GPUs (24GB VRAM).
-*   **Cost:** ~$0.30 - $0.50 per molecule (vs $80+ for FEP). At 1000 molecules, the cost is ~$300 - $500.
+*   **Cost:** ~$0.20 - $0.50 per molecule (vs $80+ for FEP).
 *   **Throughput:** ~15-20 minutes per molecule (1ns simulation).
 
 ### Data Flow
@@ -30,7 +30,7 @@ The production oracle utilizes **MM-GBSA (Molecular Mechanics-Generalized Born S
 ---
 
 ## 2. Development Oracle: Mock Score
-To enable rapid iteration of the pipeline logic without incurring cloud costs, a synthetic oracle is used during development.
+To allow rapid iteration of the pipeline logic without incurring cloud costs, we use a synthetic oracle during development.
 
 *   **Logic:** $Score = \text{Docking} + \text{Noise} + \text{QED\_Penalty}$.
 *   **Role:** Validates the software architecture (BigQuery, Training, Loop) for $0 cost.

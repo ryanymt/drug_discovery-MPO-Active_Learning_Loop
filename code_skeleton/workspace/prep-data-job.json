@@ -1,0 +1,49 @@
+{
+    "name": "projects/gcda-apac-sc/locations/us-central1/jobs/prep-p2m-data-v1",
+    "taskGroups": [
+        {
+            "taskSpec": {
+                "runnables": [
+                    {
+                        "container": {
+                            "imageUri": "gcr.io/google.com/cloudsdktool/cloud-sdk:latest",
+                            "entrypoint": "/bin/bash",
+                            "commands": [
+                                "-c",
+                                "pip install pandas google-cloud-storage google-cloud-bigquery --break-system-packages --quiet && gsutil cp gs://ryanymt/input/scripts/prep_p2m_data.py . && python3 prep_p2m_data.py"
+                            ],
+                            "volumes": [
+                                "/mnt/disks/gcs/input:/mnt/disks/gcs/input:rw",
+                                "/mnt/disks/gcs/output:/mnt/disks/gcs/output:rw"
+                            ]
+                        }
+                    }
+                ],
+                "computeResource": {
+                    "cpuMilli": "2000",
+                    "memoryMib": "8192"
+                },
+                "maxRetryCount": 1,
+                "maxRunDuration": "3600s"
+            },
+            "taskCount": 1,
+            "parallelism": 1
+        }
+    ],
+    "allocationPolicy": {
+        "instances": [
+            {
+                "policy": {
+                    "machineType": "e2-standard-4",
+                    "provisioningModel": "STANDARD"
+                }
+            }
+        ]
+    },
+    "labels": {
+        "batch-job-id": "prep-p2m-data-v2"
+    },
+    "logsPolicy": {
+        "destination": "CLOUD_LOGGING"
+    }
+}

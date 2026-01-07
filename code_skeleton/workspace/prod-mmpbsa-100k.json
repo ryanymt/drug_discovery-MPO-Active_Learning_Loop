@@ -1,0 +1,84 @@
+{
+    "name": "projects/gcda-apac-sc/locations/us-central1/jobs/prod-mmpbsa-100k",
+    "taskGroups": [
+        {
+            "taskSpec": {
+                "runnables": [
+                    {
+                        "container": {
+                            "imageUri": "us-central1-docker.pkg.dev/gcda-apac-sc/drug-discovery-containers/gromacs-mmpbsa:latest",
+                            "entrypoint": "/bin/bash",
+                            "commands": [
+                                "-c",
+                                "mkdir -p /mnt/disks/gcs/input && cp /mnt/disks/gcs/source_batches/batch_${BATCH_TASK_INDEX}.sdf /mnt/disks/gcs/input/ligand.sdf && cp /mnt/disks/gcs/source_protein/AF-P32298.pdb /mnt/disks/gcs/input/protein.pdb && cp /mnt/disks/gcs/source_configs/*.mdp /mnt/disks/gcs/input/ && cp /mnt/disks/gcs/source_protein/fep_setup.py /usr/local/bin/fep_setup.py && cp /mnt/disks/gcs/source_protein/run_mmpbsa.sh /usr/local/bin/run_mmpbsa.sh && chmod +x /usr/local/bin/run_mmpbsa.sh /usr/local/bin/fep_setup.py && /usr/local/bin/run_mmpbsa.sh --run --id batch_${BATCH_TASK_INDEX}"
+                            ],
+                            "volumes": [
+                                "/mnt/disks/gcs/output:/mnt/disks/gcs/output:rw",
+                                "/mnt/disks/gcs/source_protein:/mnt/disks/gcs/source_protein:ro",
+                                "/mnt/disks/gcs/source_batches:/mnt/disks/gcs/source_batches:ro",
+                                "/mnt/disks/gcs/source_configs:/mnt/disks/gcs/source_configs:ro"
+                            ]
+                        }
+                    }
+                ],
+                "computeResource": {
+                    "cpuMilli": "12000",
+                    "memoryMib": "49152"
+                },
+                "maxRetryCount": 3,
+                "volumes": [
+                    {
+                        "gcs": {
+                            "remotePath": "ryanymt/input/"
+                        },
+                        "mountPath": "/mnt/disks/gcs/source_protein"
+                    },
+                    {
+                        "gcs": {
+                            "remotePath": "ryanymt/input/oracle_batches/"
+                        },
+                        "mountPath": "/mnt/disks/gcs/source_batches"
+                    },
+                    {
+                        "gcs": {
+                            "remotePath": "ryanymt/input/configs/"
+                        },
+                        "mountPath": "/mnt/disks/gcs/source_configs"
+                    },
+                    {
+                        "gcs": {
+                            "remotePath": "ryanymt/output/prod_100k/mmpbsa/"
+                        },
+                        "mountPath": "/mnt/disks/gcs/output"
+                    }
+                ]
+            },
+            "taskCount": "876",
+            "parallelism": "100"
+        }
+    ],
+    "allocationPolicy": {
+        "instances": [
+            {
+                "installGpuDrivers": true,
+                "policy": {
+                    "provisioningModel": "SPOT",
+                    "machineType": "g2-standard-12",
+                    "accelerators": [
+                        {
+                            "type": "nvidia-l4",
+                            "count": "1",
+                            "installGpuDrivers": true
+                        }
+                    ],
+                    "bootDisk": {
+                        "sizeGb": "100"
+                    }
+                }
+            }
+        ]
+    },
+    "logsPolicy": {
+        "destination": "CLOUD_LOGGING"
+    }
+}

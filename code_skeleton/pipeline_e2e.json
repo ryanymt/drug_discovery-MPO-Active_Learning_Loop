@@ -1,0 +1,1207 @@
+{
+  "components": {
+    "comp-condition-1": {
+      "dag": {
+        "tasks": {
+          "patch-spec-7": {
+            "cachingOptions": {
+              "enableCache": true
+            },
+            "componentRef": {
+              "name": "comp-patch-spec-7"
+            },
+            "inputs": {
+              "parameters": {
+                "base_gcs_path": {
+                  "runtimeValue": {
+                    "constant": "/mnt/disks/gcs"
+                  }
+                },
+                "loop_id": {
+                  "componentInputParameter": "pipelinechannel--loop_id"
+                },
+                "mode": {
+                  "runtimeValue": {
+                    "constant": "mock_fep"
+                  }
+                },
+                "spec_json_str": {
+                  "runtimeValue": {
+                    "constant": "{\n    \"taskGroups\": [\n        {\n            \"taskCount\": 1,\n            \"parallelism\": 1,\n            \"taskSpec\": {\n                \"runnables\": [\n                    {\n                        \"container\": {\n                            \"imageUri\": \"us-central1-docker.pkg.dev/lifescience-project-469915/drug-discovery-containers/proxy-model:latest\",\n                            \"entrypoint\": \"/bin/bash\",\n                            \"commands\": [\n                                \"-c\",\n                                \"echo 'Starting Mock FEP...' && cp /mnt/disks/gcs/data/scripts/mock_fep_batch.py /tmp/mock_fep.py && python3 /tmp/mock_fep.py --input /mnt/disks/gcs/input/selected_candidates.csv\"\n                            ],\n                            \"volumes\": [\n                                \"/mnt/disks/gcs:/mnt/disks/gcs:rw\"\n                            ]\n                        }\n                    }\n                ],\n                \"computeResource\": {\n                    \"cpuMilli\": \"2000\",\n                    \"memoryMib\": \"4000\"\n                },\n                \"volumes\": [\n                    {\n                        \"gcs\": {\n                            \"remotePath\": \"drug-discovery-mvp-docking-results\"\n                        },\n                        \"mountPath\": \"/mnt/disks/gcs\"\n                    }\n                ]\n            }\n        }\n    ],\n    \"allocationPolicy\": {\n        \"instances\": [\n            {\n                \"policy\": {\n                    \"provisioningModel\": \"SPOT\",\n                    \"bootDisk\": {\n                        \"sizeGb\": \"30\"\n                    },\n                    \"machineType\": \"e2-standard-2\"\n                }\n            }\n        ]\n    },\n    \"logsPolicy\": {\n        \"destination\": \"CLOUD_LOGGING\"\n    }\n}"
+                  }
+                }
+              }
+            },
+            "taskInfo": {
+              "name": "patch-spec-7"
+            }
+          },
+          "submit-batch-job-7": {
+            "cachingOptions": {
+              "enableCache": true
+            },
+            "componentRef": {
+              "name": "comp-submit-batch-job-7"
+            },
+            "dependentTasks": [
+              "patch-spec-7"
+            ],
+            "inputs": {
+              "parameters": {
+                "job_spec": {
+                  "taskOutputParameter": {
+                    "outputParameterKey": "Output",
+                    "producerTask": "patch-spec-7"
+                  }
+                },
+                "location": {
+                  "runtimeValue": {
+                    "constant": "us-central1"
+                  }
+                },
+                "project": {
+                  "runtimeValue": {
+                    "constant": "lifescience-project-469915"
+                  }
+                }
+              }
+            },
+            "taskInfo": {
+              "name": "Oracle (Mock)"
+            }
+          }
+        }
+      },
+      "inputDefinitions": {
+        "parameters": {
+          "pipelinechannel--loop_id": {
+            "parameterType": "STRING"
+          },
+          "pipelinechannel--use_mock_oracle": {
+            "parameterType": "BOOLEAN"
+          }
+        }
+      }
+    },
+    "comp-condition-2": {
+      "dag": {
+        "tasks": {
+          "submit-batch-job-8": {
+            "cachingOptions": {
+              "enableCache": true
+            },
+            "componentRef": {
+              "name": "comp-submit-batch-job-8"
+            },
+            "inputs": {
+              "parameters": {
+                "job_spec": {
+                  "runtimeValue": {
+                    "constant": "{\n    \"taskGroups\": [\n        {\n            \"taskCount\": 13,\n            \"parallelism\": 13,\n            \"taskSpec\": {\n                \"runnables\": [\n                    {\n                        \"container\": {\n                            \"imageUri\": \"us-central1-docker.pkg.dev/lifescience-project-469915/drug-discovery-containers/gromacs-fep:v1\",\n                            \"entrypoint\": \"/bin/bash\",\n                            \"commands\": [\n                                \"-c\",\n                                \"/usr/local/bin/run_fep.sh --run $BATCH_TASK_INDEX\"\n                            ],\n                            \"volumes\": [\n                                \"/mnt/disks/gcs:/mnt/disks/gcs:rw\"\n                            ]\n                        }\n                    }\n                ],\n                \"computeResource\": {\n                    \"cpuMilli\": \"4000\",\n                    \"memoryMib\": \"16000\"\n                },\n                \"volumes\": [\n                    {\n                        \"gcs\": {\n                            \"remotePath\": \"drug-discovery-mvp-docking-results\"\n                        },\n                        \"mountPath\": \"/mnt/disks/gcs\"\n                    }\n                ]\n            }\n        }\n    ],\n    \"allocationPolicy\": {\n        \"instances\": [\n            {\n                \"installGpuDrivers\": true,\n                \"policy\": {\n                    \"provisioningModel\": \"SPOT\",\n                    \"bootDisk\": {\n                        \"sizeGb\": \"100\"\n                    },\n                    \"machineType\": \"g2-standard-4\",\n                    \"accelerators\": [\n                        {\n                            \"type\": \"nvidia-l4\",\n                            \"count\": 1\n                        }\n                    ]\n                }\n            }\n        ],\n        \"location\": {\n            \"allowedLocations\": [\n                \"regions/us-central1\",\n                \"regions/us-east1\",\n                \"regions/us-west1\"\n            ]\n        }\n    },\n    \"logsPolicy\": {\n        \"destination\": \"CLOUD_LOGGING\"\n    }\n}"
+                  }
+                },
+                "location": {
+                  "runtimeValue": {
+                    "constant": "us-central1"
+                  }
+                },
+                "project": {
+                  "runtimeValue": {
+                    "constant": "lifescience-project-469915"
+                  }
+                }
+              }
+            },
+            "taskInfo": {
+              "name": "Oracle (Prod)"
+            }
+          }
+        }
+      },
+      "inputDefinitions": {
+        "parameters": {
+          "pipelinechannel--use_mock_oracle": {
+            "parameterType": "BOOLEAN"
+          }
+        }
+      }
+    },
+    "comp-patch-spec": {
+      "executorLabel": "exec-patch-spec",
+      "inputDefinitions": {
+        "parameters": {
+          "base_gcs_path": {
+            "parameterType": "STRING"
+          },
+          "loop_id": {
+            "parameterType": "STRING"
+          },
+          "mode": {
+            "parameterType": "STRING"
+          },
+          "spec_json_str": {
+            "parameterType": "STRING"
+          }
+        }
+      },
+      "outputDefinitions": {
+        "parameters": {
+          "Output": {
+            "parameterType": "STRING"
+          }
+        }
+      }
+    },
+    "comp-patch-spec-2": {
+      "executorLabel": "exec-patch-spec-2",
+      "inputDefinitions": {
+        "parameters": {
+          "base_gcs_path": {
+            "parameterType": "STRING"
+          },
+          "loop_id": {
+            "parameterType": "STRING"
+          },
+          "mode": {
+            "parameterType": "STRING"
+          },
+          "spec_json_str": {
+            "parameterType": "STRING"
+          }
+        }
+      },
+      "outputDefinitions": {
+        "parameters": {
+          "Output": {
+            "parameterType": "STRING"
+          }
+        }
+      }
+    },
+    "comp-patch-spec-3": {
+      "executorLabel": "exec-patch-spec-3",
+      "inputDefinitions": {
+        "parameters": {
+          "base_gcs_path": {
+            "parameterType": "STRING"
+          },
+          "loop_id": {
+            "parameterType": "STRING"
+          },
+          "mode": {
+            "parameterType": "STRING"
+          },
+          "spec_json_str": {
+            "parameterType": "STRING"
+          }
+        }
+      },
+      "outputDefinitions": {
+        "parameters": {
+          "Output": {
+            "parameterType": "STRING"
+          }
+        }
+      }
+    },
+    "comp-patch-spec-4": {
+      "executorLabel": "exec-patch-spec-4",
+      "inputDefinitions": {
+        "parameters": {
+          "base_gcs_path": {
+            "parameterType": "STRING"
+          },
+          "loop_id": {
+            "parameterType": "STRING"
+          },
+          "mode": {
+            "parameterType": "STRING"
+          },
+          "spec_json_str": {
+            "parameterType": "STRING"
+          }
+        }
+      },
+      "outputDefinitions": {
+        "parameters": {
+          "Output": {
+            "parameterType": "STRING"
+          }
+        }
+      }
+    },
+    "comp-patch-spec-5": {
+      "executorLabel": "exec-patch-spec-5",
+      "inputDefinitions": {
+        "parameters": {
+          "base_gcs_path": {
+            "parameterType": "STRING"
+          },
+          "loop_id": {
+            "parameterType": "STRING"
+          },
+          "mode": {
+            "parameterType": "STRING"
+          },
+          "spec_json_str": {
+            "parameterType": "STRING"
+          }
+        }
+      },
+      "outputDefinitions": {
+        "parameters": {
+          "Output": {
+            "parameterType": "STRING"
+          }
+        }
+      }
+    },
+    "comp-patch-spec-6": {
+      "executorLabel": "exec-patch-spec-6",
+      "inputDefinitions": {
+        "parameters": {
+          "base_gcs_path": {
+            "parameterType": "STRING"
+          },
+          "loop_id": {
+            "parameterType": "STRING"
+          },
+          "mode": {
+            "parameterType": "STRING"
+          },
+          "spec_json_str": {
+            "parameterType": "STRING"
+          }
+        }
+      },
+      "outputDefinitions": {
+        "parameters": {
+          "Output": {
+            "parameterType": "STRING"
+          }
+        }
+      }
+    },
+    "comp-patch-spec-7": {
+      "executorLabel": "exec-patch-spec-7",
+      "inputDefinitions": {
+        "parameters": {
+          "base_gcs_path": {
+            "parameterType": "STRING"
+          },
+          "loop_id": {
+            "parameterType": "STRING"
+          },
+          "mode": {
+            "parameterType": "STRING"
+          },
+          "spec_json_str": {
+            "parameterType": "STRING"
+          }
+        }
+      },
+      "outputDefinitions": {
+        "parameters": {
+          "Output": {
+            "parameterType": "STRING"
+          }
+        }
+      }
+    },
+    "comp-submit-batch-job": {
+      "executorLabel": "exec-submit-batch-job",
+      "inputDefinitions": {
+        "parameters": {
+          "job_spec": {
+            "description": "The entire Batch job specification in JSON format as a string.",
+            "parameterType": "STRING"
+          },
+          "location": {
+            "description": "The Google Cloud region for the job.",
+            "parameterType": "STRING"
+          },
+          "project": {
+            "description": "The Google Cloud project ID.",
+            "parameterType": "STRING"
+          }
+        }
+      }
+    },
+    "comp-submit-batch-job-2": {
+      "executorLabel": "exec-submit-batch-job-2",
+      "inputDefinitions": {
+        "parameters": {
+          "job_spec": {
+            "description": "The entire Batch job specification in JSON format as a string.",
+            "parameterType": "STRING"
+          },
+          "location": {
+            "description": "The Google Cloud region for the job.",
+            "parameterType": "STRING"
+          },
+          "project": {
+            "description": "The Google Cloud project ID.",
+            "parameterType": "STRING"
+          }
+        }
+      }
+    },
+    "comp-submit-batch-job-3": {
+      "executorLabel": "exec-submit-batch-job-3",
+      "inputDefinitions": {
+        "parameters": {
+          "job_spec": {
+            "description": "The entire Batch job specification in JSON format as a string.",
+            "parameterType": "STRING"
+          },
+          "location": {
+            "description": "The Google Cloud region for the job.",
+            "parameterType": "STRING"
+          },
+          "project": {
+            "description": "The Google Cloud project ID.",
+            "parameterType": "STRING"
+          }
+        }
+      }
+    },
+    "comp-submit-batch-job-4": {
+      "executorLabel": "exec-submit-batch-job-4",
+      "inputDefinitions": {
+        "parameters": {
+          "job_spec": {
+            "description": "The entire Batch job specification in JSON format as a string.",
+            "parameterType": "STRING"
+          },
+          "location": {
+            "description": "The Google Cloud region for the job.",
+            "parameterType": "STRING"
+          },
+          "project": {
+            "description": "The Google Cloud project ID.",
+            "parameterType": "STRING"
+          }
+        }
+      }
+    },
+    "comp-submit-batch-job-5": {
+      "executorLabel": "exec-submit-batch-job-5",
+      "inputDefinitions": {
+        "parameters": {
+          "job_spec": {
+            "description": "The entire Batch job specification in JSON format as a string.",
+            "parameterType": "STRING"
+          },
+          "location": {
+            "description": "The Google Cloud region for the job.",
+            "parameterType": "STRING"
+          },
+          "project": {
+            "description": "The Google Cloud project ID.",
+            "parameterType": "STRING"
+          }
+        }
+      }
+    },
+    "comp-submit-batch-job-6": {
+      "executorLabel": "exec-submit-batch-job-6",
+      "inputDefinitions": {
+        "parameters": {
+          "job_spec": {
+            "description": "The entire Batch job specification in JSON format as a string.",
+            "parameterType": "STRING"
+          },
+          "location": {
+            "description": "The Google Cloud region for the job.",
+            "parameterType": "STRING"
+          },
+          "project": {
+            "description": "The Google Cloud project ID.",
+            "parameterType": "STRING"
+          }
+        }
+      }
+    },
+    "comp-submit-batch-job-7": {
+      "executorLabel": "exec-submit-batch-job-7",
+      "inputDefinitions": {
+        "parameters": {
+          "job_spec": {
+            "description": "The entire Batch job specification in JSON format as a string.",
+            "parameterType": "STRING"
+          },
+          "location": {
+            "description": "The Google Cloud region for the job.",
+            "parameterType": "STRING"
+          },
+          "project": {
+            "description": "The Google Cloud project ID.",
+            "parameterType": "STRING"
+          }
+        }
+      }
+    },
+    "comp-submit-batch-job-8": {
+      "executorLabel": "exec-submit-batch-job-8",
+      "inputDefinitions": {
+        "parameters": {
+          "job_spec": {
+            "description": "The entire Batch job specification in JSON format as a string.",
+            "parameterType": "STRING"
+          },
+          "location": {
+            "description": "The Google Cloud region for the job.",
+            "parameterType": "STRING"
+          },
+          "project": {
+            "description": "The Google Cloud project ID.",
+            "parameterType": "STRING"
+          }
+        }
+      }
+    }
+  },
+  "deploymentSpec": {
+    "executors": {
+      "exec-patch-spec": {
+        "container": {
+          "args": [
+            "--executor_input",
+            "{{$}}",
+            "--function_to_execute",
+            "patch_spec"
+          ],
+          "command": [
+            "sh",
+            "-c",
+            "\nif ! [ -x \"$(command -v pip)\" ]; then\n    python3 -m ensurepip || python3 -m ensurepip --user || apt-get install python3-pip\nfi\n\nPIP_DISABLE_PIP_VERSION_CHECK=1 python3 -m pip install --quiet --no-warn-script-location 'kfp==2.15.2' '--no-deps' 'typing-extensions>=3.7.4,<5; python_version<\"3.9\"' && \"$0\" \"$@\"\n",
+            "sh",
+            "-ec",
+            "program_path=$(mktemp -d)\n\nprintf \"%s\" \"$0\" > \"$program_path/ephemeral_component.py\"\n_KFP_RUNTIME=true python3 -m kfp.dsl.executor_main                         --component_module_path                         \"$program_path/ephemeral_component.py\"                         \"$@\"\n",
+            "\nimport kfp\nfrom kfp import dsl\nfrom kfp.dsl import *\nfrom typing import *\n\ndef patch_spec(\n    spec_json_str: str,\n    loop_id: str,\n    mode: str,\n    base_gcs_path: str\n) -> str:\n    import json\n    import re\n\n    spec = json.loads(spec_json_str)\n\n    # Helper to clean command string\n    def update_cmd(container, old, new):\n        cmds = container['commands']\n        # If commands is list of strings\n        for i, c in enumerate(cmds):\n            if old in c:\n                cmds[i] = c.replace(old, new)\n        # If it's a -c \"...\" structure (common in our specs)\n        if len(cmds) > 1 and cmds[0] == \"-c\": # bash -c ...\n             cmds[1] = cmds[1].replace(old, new)\n\n    task = spec['taskGroups'][0]['taskSpec']['runnables'][0]\n    container = task['container']\n\n    # --- Logic ---\n    if mode == \"pocket2mol\":\n        # Output: /output/{loop_id}/generation\n        new_out = f\"{base_gcs_path}/output/{loop_id}/generation\"\n        # Naive replace of common flag patterns\n        # We rely on the template having a known structure or placeholders would be better.\n        # Let's assume the template has specific flags we can regex sub.\n        cmd = container['commands'][2] # Assuming bash -c \"...\" is at index 2 or 1\n        # Fix: The templates usually have [\"/bin/bash\", \"-c\", \"python ...\"] or similar\n        # Let's handle the string content of the last arg\n        cmd_idx = -1\n        cmd_str = container['commands'][cmd_idx]\n\n        cmd_str = re.sub(r\"--outdir\\s+\\S+\", f\"--outdir {new_out}\", cmd_str)\n        cmd_str = re.sub(r\"num_samples: \\d+\", \"num_samples: 50\", cmd_str) # Fast test\n\n        container['commands'][cmd_idx] = cmd_str\n\n    elif mode == \"gnina\" or mode == \"txgemma\" or mode == \"rdkit\":\n        # Input: /output/{loop_id}/generation/SMILES.txt\n        inp_path = f\"{base_gcs_path}/output/{loop_id}/generation/SMILES.txt\"\n\n        cmd_idx = -1\n        cmd_str = container['commands'][cmd_idx]\n\n        if mode == \"txgemma\":\n             cmd_str = re.sub(r\"--input-file\\s+\\S+\", f\"--input-file {inp_path}\", cmd_str)\n        elif mode == \"rdkit\":\n             cmd_str = re.sub(r\"--input_csv\\s+\\S+\", f\"--input_csv {inp_path}\", cmd_str)\n        elif mode == \"gnina\":\n             # Gnina script is positional? Or flags? \n             # Looking at task spec: /usr/local/bin/run_gnina_docking.sh <input> <output>\n             # We just append/replace\n             parts = cmd_str.split()\n             # Finding the script call\n             if \"run_gnina_docking.sh\" in cmd_str:\n                 # Replace the arg after the script\n                 # This is brittle. Let's assume standard arg order from template.\n                 # Better: Use placeholders in template {{INPUT_Path}}\n                 pass\n\n        container['commands'][cmd_idx] = cmd_str\n\n    elif mode == \"joiner\":\n        # Inputs from generation and filters\n        smi = f\"{base_gcs_path}/output/{loop_id}/generation/SMILES.txt\"\n        rd = f\"{base_gcs_path}/input/{loop_id}/filters/rdkit_scores.csv\" \n        tx = f\"{base_gcs_path}/input/{loop_id}/filters/txgemma_results.csv\"\n        # Gnina is a directory\n        gn = f\"{base_gcs_path}/input/{loop_id}/filters/gnina_out\"\n        out = f\"{base_gcs_path}/output/{loop_id}/selection/joined_results.csv\"\n\n        # Command: Copy script -> Run\n        script_src = f\"{base_gcs_path}/data/scripts/join_results.py\"\n\n        # We need to construct the bash command\n        # \"echo 'Starting Join...' && cp /mnt/disks/gcs/data/scripts/join_results.py . && python3 join_results.py ...\"\n\n        cmd_str = (\n            f\"cp {script_src} . && \"\n            f\"python3 join_results.py \"\n            f\"--smiles {smi} \"\n            f\"--rdkit {rd} \"\n            f\"--txgemma {tx} \"\n            f\"--gnina {gn} \"\n            f\"--output {out} \"\n            f\"--batch_id {loop_id}\"\n        )\n\n        # Depending on template, we might need to wrap in /bin/bash -c\n        # If template command is [\"python3\", ...], we replace it with [\"/bin/bash\", \"-c\", cmd_str]\n\n        container['command'] = [\"/bin/bash\", \"-c\", cmd_str]\n        # Note: 'command' vs 'commands'. K8s uses 'command', Batch Spec 'commands'. \n        # Check carefully. The template uses 'commands'.\n        container['commands'] = [\"/bin/bash\", \"-c\", cmd_str]\n\n    elif mode == \"selection\":\n        inp = f\"{base_gcs_path}/output/{loop_id}/selection/joined_results.csv\"\n        out = f\"{base_gcs_path}/output/{loop_id}/selection/selected_candidates.csv\"\n\n        script_src = f\"{base_gcs_path}/data/scripts/run_vizier_optimization.py\"\n\n        cmd_str = (\n            f\"cp {script_src} . && \"\n            f\"python3 run_vizier_optimization.py \"\n            f\"--input {inp} \"\n            f\"--output {out} \"\n            f\"--top_n 50\"\n        )\n\n        container['commands'] = [\"/bin/bash\", \"-c\", cmd_str]\n\n    elif mode == \"mock_fep\":\n        # Input: Selected candidates\n        inp = f\"{base_gcs_path}/output/{loop_id}/selection/selected_candidates.csv\"\n        cmd_idx = 1 # [\"-c\", \"cmd\"]\n        c = container['commands'][cmd_idx]\n        c = re.sub(r\"--input\\s+\\S+\", f\"--input {inp}\", c)\n        container['commands'][cmd_idx] = c\n\n    return json.dumps(spec)\n\n"
+          ],
+          "image": "python:3.9"
+        }
+      },
+      "exec-patch-spec-2": {
+        "container": {
+          "args": [
+            "--executor_input",
+            "{{$}}",
+            "--function_to_execute",
+            "patch_spec"
+          ],
+          "command": [
+            "sh",
+            "-c",
+            "\nif ! [ -x \"$(command -v pip)\" ]; then\n    python3 -m ensurepip || python3 -m ensurepip --user || apt-get install python3-pip\nfi\n\nPIP_DISABLE_PIP_VERSION_CHECK=1 python3 -m pip install --quiet --no-warn-script-location 'kfp==2.15.2' '--no-deps' 'typing-extensions>=3.7.4,<5; python_version<\"3.9\"' && \"$0\" \"$@\"\n",
+            "sh",
+            "-ec",
+            "program_path=$(mktemp -d)\n\nprintf \"%s\" \"$0\" > \"$program_path/ephemeral_component.py\"\n_KFP_RUNTIME=true python3 -m kfp.dsl.executor_main                         --component_module_path                         \"$program_path/ephemeral_component.py\"                         \"$@\"\n",
+            "\nimport kfp\nfrom kfp import dsl\nfrom kfp.dsl import *\nfrom typing import *\n\ndef patch_spec(\n    spec_json_str: str,\n    loop_id: str,\n    mode: str,\n    base_gcs_path: str\n) -> str:\n    import json\n    import re\n\n    spec = json.loads(spec_json_str)\n\n    # Helper to clean command string\n    def update_cmd(container, old, new):\n        cmds = container['commands']\n        # If commands is list of strings\n        for i, c in enumerate(cmds):\n            if old in c:\n                cmds[i] = c.replace(old, new)\n        # If it's a -c \"...\" structure (common in our specs)\n        if len(cmds) > 1 and cmds[0] == \"-c\": # bash -c ...\n             cmds[1] = cmds[1].replace(old, new)\n\n    task = spec['taskGroups'][0]['taskSpec']['runnables'][0]\n    container = task['container']\n\n    # --- Logic ---\n    if mode == \"pocket2mol\":\n        # Output: /output/{loop_id}/generation\n        new_out = f\"{base_gcs_path}/output/{loop_id}/generation\"\n        # Naive replace of common flag patterns\n        # We rely on the template having a known structure or placeholders would be better.\n        # Let's assume the template has specific flags we can regex sub.\n        cmd = container['commands'][2] # Assuming bash -c \"...\" is at index 2 or 1\n        # Fix: The templates usually have [\"/bin/bash\", \"-c\", \"python ...\"] or similar\n        # Let's handle the string content of the last arg\n        cmd_idx = -1\n        cmd_str = container['commands'][cmd_idx]\n\n        cmd_str = re.sub(r\"--outdir\\s+\\S+\", f\"--outdir {new_out}\", cmd_str)\n        cmd_str = re.sub(r\"num_samples: \\d+\", \"num_samples: 50\", cmd_str) # Fast test\n\n        container['commands'][cmd_idx] = cmd_str\n\n    elif mode == \"gnina\" or mode == \"txgemma\" or mode == \"rdkit\":\n        # Input: /output/{loop_id}/generation/SMILES.txt\n        inp_path = f\"{base_gcs_path}/output/{loop_id}/generation/SMILES.txt\"\n\n        cmd_idx = -1\n        cmd_str = container['commands'][cmd_idx]\n\n        if mode == \"txgemma\":\n             cmd_str = re.sub(r\"--input-file\\s+\\S+\", f\"--input-file {inp_path}\", cmd_str)\n        elif mode == \"rdkit\":\n             cmd_str = re.sub(r\"--input_csv\\s+\\S+\", f\"--input_csv {inp_path}\", cmd_str)\n        elif mode == \"gnina\":\n             # Gnina script is positional? Or flags? \n             # Looking at task spec: /usr/local/bin/run_gnina_docking.sh <input> <output>\n             # We just append/replace\n             parts = cmd_str.split()\n             # Finding the script call\n             if \"run_gnina_docking.sh\" in cmd_str:\n                 # Replace the arg after the script\n                 # This is brittle. Let's assume standard arg order from template.\n                 # Better: Use placeholders in template {{INPUT_Path}}\n                 pass\n\n        container['commands'][cmd_idx] = cmd_str\n\n    elif mode == \"joiner\":\n        # Inputs from generation and filters\n        smi = f\"{base_gcs_path}/output/{loop_id}/generation/SMILES.txt\"\n        rd = f\"{base_gcs_path}/input/{loop_id}/filters/rdkit_scores.csv\" \n        tx = f\"{base_gcs_path}/input/{loop_id}/filters/txgemma_results.csv\"\n        # Gnina is a directory\n        gn = f\"{base_gcs_path}/input/{loop_id}/filters/gnina_out\"\n        out = f\"{base_gcs_path}/output/{loop_id}/selection/joined_results.csv\"\n\n        # Command: Copy script -> Run\n        script_src = f\"{base_gcs_path}/data/scripts/join_results.py\"\n\n        # We need to construct the bash command\n        # \"echo 'Starting Join...' && cp /mnt/disks/gcs/data/scripts/join_results.py . && python3 join_results.py ...\"\n\n        cmd_str = (\n            f\"cp {script_src} . && \"\n            f\"python3 join_results.py \"\n            f\"--smiles {smi} \"\n            f\"--rdkit {rd} \"\n            f\"--txgemma {tx} \"\n            f\"--gnina {gn} \"\n            f\"--output {out} \"\n            f\"--batch_id {loop_id}\"\n        )\n\n        # Depending on template, we might need to wrap in /bin/bash -c\n        # If template command is [\"python3\", ...], we replace it with [\"/bin/bash\", \"-c\", cmd_str]\n\n        container['command'] = [\"/bin/bash\", \"-c\", cmd_str]\n        # Note: 'command' vs 'commands'. K8s uses 'command', Batch Spec 'commands'. \n        # Check carefully. The template uses 'commands'.\n        container['commands'] = [\"/bin/bash\", \"-c\", cmd_str]\n\n    elif mode == \"selection\":\n        inp = f\"{base_gcs_path}/output/{loop_id}/selection/joined_results.csv\"\n        out = f\"{base_gcs_path}/output/{loop_id}/selection/selected_candidates.csv\"\n\n        script_src = f\"{base_gcs_path}/data/scripts/run_vizier_optimization.py\"\n\n        cmd_str = (\n            f\"cp {script_src} . && \"\n            f\"python3 run_vizier_optimization.py \"\n            f\"--input {inp} \"\n            f\"--output {out} \"\n            f\"--top_n 50\"\n        )\n\n        container['commands'] = [\"/bin/bash\", \"-c\", cmd_str]\n\n    elif mode == \"mock_fep\":\n        # Input: Selected candidates\n        inp = f\"{base_gcs_path}/output/{loop_id}/selection/selected_candidates.csv\"\n        cmd_idx = 1 # [\"-c\", \"cmd\"]\n        c = container['commands'][cmd_idx]\n        c = re.sub(r\"--input\\s+\\S+\", f\"--input {inp}\", c)\n        container['commands'][cmd_idx] = c\n\n    return json.dumps(spec)\n\n"
+          ],
+          "image": "python:3.9"
+        }
+      },
+      "exec-patch-spec-3": {
+        "container": {
+          "args": [
+            "--executor_input",
+            "{{$}}",
+            "--function_to_execute",
+            "patch_spec"
+          ],
+          "command": [
+            "sh",
+            "-c",
+            "\nif ! [ -x \"$(command -v pip)\" ]; then\n    python3 -m ensurepip || python3 -m ensurepip --user || apt-get install python3-pip\nfi\n\nPIP_DISABLE_PIP_VERSION_CHECK=1 python3 -m pip install --quiet --no-warn-script-location 'kfp==2.15.2' '--no-deps' 'typing-extensions>=3.7.4,<5; python_version<\"3.9\"' && \"$0\" \"$@\"\n",
+            "sh",
+            "-ec",
+            "program_path=$(mktemp -d)\n\nprintf \"%s\" \"$0\" > \"$program_path/ephemeral_component.py\"\n_KFP_RUNTIME=true python3 -m kfp.dsl.executor_main                         --component_module_path                         \"$program_path/ephemeral_component.py\"                         \"$@\"\n",
+            "\nimport kfp\nfrom kfp import dsl\nfrom kfp.dsl import *\nfrom typing import *\n\ndef patch_spec(\n    spec_json_str: str,\n    loop_id: str,\n    mode: str,\n    base_gcs_path: str\n) -> str:\n    import json\n    import re\n\n    spec = json.loads(spec_json_str)\n\n    # Helper to clean command string\n    def update_cmd(container, old, new):\n        cmds = container['commands']\n        # If commands is list of strings\n        for i, c in enumerate(cmds):\n            if old in c:\n                cmds[i] = c.replace(old, new)\n        # If it's a -c \"...\" structure (common in our specs)\n        if len(cmds) > 1 and cmds[0] == \"-c\": # bash -c ...\n             cmds[1] = cmds[1].replace(old, new)\n\n    task = spec['taskGroups'][0]['taskSpec']['runnables'][0]\n    container = task['container']\n\n    # --- Logic ---\n    if mode == \"pocket2mol\":\n        # Output: /output/{loop_id}/generation\n        new_out = f\"{base_gcs_path}/output/{loop_id}/generation\"\n        # Naive replace of common flag patterns\n        # We rely on the template having a known structure or placeholders would be better.\n        # Let's assume the template has specific flags we can regex sub.\n        cmd = container['commands'][2] # Assuming bash -c \"...\" is at index 2 or 1\n        # Fix: The templates usually have [\"/bin/bash\", \"-c\", \"python ...\"] or similar\n        # Let's handle the string content of the last arg\n        cmd_idx = -1\n        cmd_str = container['commands'][cmd_idx]\n\n        cmd_str = re.sub(r\"--outdir\\s+\\S+\", f\"--outdir {new_out}\", cmd_str)\n        cmd_str = re.sub(r\"num_samples: \\d+\", \"num_samples: 50\", cmd_str) # Fast test\n\n        container['commands'][cmd_idx] = cmd_str\n\n    elif mode == \"gnina\" or mode == \"txgemma\" or mode == \"rdkit\":\n        # Input: /output/{loop_id}/generation/SMILES.txt\n        inp_path = f\"{base_gcs_path}/output/{loop_id}/generation/SMILES.txt\"\n\n        cmd_idx = -1\n        cmd_str = container['commands'][cmd_idx]\n\n        if mode == \"txgemma\":\n             cmd_str = re.sub(r\"--input-file\\s+\\S+\", f\"--input-file {inp_path}\", cmd_str)\n        elif mode == \"rdkit\":\n             cmd_str = re.sub(r\"--input_csv\\s+\\S+\", f\"--input_csv {inp_path}\", cmd_str)\n        elif mode == \"gnina\":\n             # Gnina script is positional? Or flags? \n             # Looking at task spec: /usr/local/bin/run_gnina_docking.sh <input> <output>\n             # We just append/replace\n             parts = cmd_str.split()\n             # Finding the script call\n             if \"run_gnina_docking.sh\" in cmd_str:\n                 # Replace the arg after the script\n                 # This is brittle. Let's assume standard arg order from template.\n                 # Better: Use placeholders in template {{INPUT_Path}}\n                 pass\n\n        container['commands'][cmd_idx] = cmd_str\n\n    elif mode == \"joiner\":\n        # Inputs from generation and filters\n        smi = f\"{base_gcs_path}/output/{loop_id}/generation/SMILES.txt\"\n        rd = f\"{base_gcs_path}/input/{loop_id}/filters/rdkit_scores.csv\" \n        tx = f\"{base_gcs_path}/input/{loop_id}/filters/txgemma_results.csv\"\n        # Gnina is a directory\n        gn = f\"{base_gcs_path}/input/{loop_id}/filters/gnina_out\"\n        out = f\"{base_gcs_path}/output/{loop_id}/selection/joined_results.csv\"\n\n        # Command: Copy script -> Run\n        script_src = f\"{base_gcs_path}/data/scripts/join_results.py\"\n\n        # We need to construct the bash command\n        # \"echo 'Starting Join...' && cp /mnt/disks/gcs/data/scripts/join_results.py . && python3 join_results.py ...\"\n\n        cmd_str = (\n            f\"cp {script_src} . && \"\n            f\"python3 join_results.py \"\n            f\"--smiles {smi} \"\n            f\"--rdkit {rd} \"\n            f\"--txgemma {tx} \"\n            f\"--gnina {gn} \"\n            f\"--output {out} \"\n            f\"--batch_id {loop_id}\"\n        )\n\n        # Depending on template, we might need to wrap in /bin/bash -c\n        # If template command is [\"python3\", ...], we replace it with [\"/bin/bash\", \"-c\", cmd_str]\n\n        container['command'] = [\"/bin/bash\", \"-c\", cmd_str]\n        # Note: 'command' vs 'commands'. K8s uses 'command', Batch Spec 'commands'. \n        # Check carefully. The template uses 'commands'.\n        container['commands'] = [\"/bin/bash\", \"-c\", cmd_str]\n\n    elif mode == \"selection\":\n        inp = f\"{base_gcs_path}/output/{loop_id}/selection/joined_results.csv\"\n        out = f\"{base_gcs_path}/output/{loop_id}/selection/selected_candidates.csv\"\n\n        script_src = f\"{base_gcs_path}/data/scripts/run_vizier_optimization.py\"\n\n        cmd_str = (\n            f\"cp {script_src} . && \"\n            f\"python3 run_vizier_optimization.py \"\n            f\"--input {inp} \"\n            f\"--output {out} \"\n            f\"--top_n 50\"\n        )\n\n        container['commands'] = [\"/bin/bash\", \"-c\", cmd_str]\n\n    elif mode == \"mock_fep\":\n        # Input: Selected candidates\n        inp = f\"{base_gcs_path}/output/{loop_id}/selection/selected_candidates.csv\"\n        cmd_idx = 1 # [\"-c\", \"cmd\"]\n        c = container['commands'][cmd_idx]\n        c = re.sub(r\"--input\\s+\\S+\", f\"--input {inp}\", c)\n        container['commands'][cmd_idx] = c\n\n    return json.dumps(spec)\n\n"
+          ],
+          "image": "python:3.9"
+        }
+      },
+      "exec-patch-spec-4": {
+        "container": {
+          "args": [
+            "--executor_input",
+            "{{$}}",
+            "--function_to_execute",
+            "patch_spec"
+          ],
+          "command": [
+            "sh",
+            "-c",
+            "\nif ! [ -x \"$(command -v pip)\" ]; then\n    python3 -m ensurepip || python3 -m ensurepip --user || apt-get install python3-pip\nfi\n\nPIP_DISABLE_PIP_VERSION_CHECK=1 python3 -m pip install --quiet --no-warn-script-location 'kfp==2.15.2' '--no-deps' 'typing-extensions>=3.7.4,<5; python_version<\"3.9\"' && \"$0\" \"$@\"\n",
+            "sh",
+            "-ec",
+            "program_path=$(mktemp -d)\n\nprintf \"%s\" \"$0\" > \"$program_path/ephemeral_component.py\"\n_KFP_RUNTIME=true python3 -m kfp.dsl.executor_main                         --component_module_path                         \"$program_path/ephemeral_component.py\"                         \"$@\"\n",
+            "\nimport kfp\nfrom kfp import dsl\nfrom kfp.dsl import *\nfrom typing import *\n\ndef patch_spec(\n    spec_json_str: str,\n    loop_id: str,\n    mode: str,\n    base_gcs_path: str\n) -> str:\n    import json\n    import re\n\n    spec = json.loads(spec_json_str)\n\n    # Helper to clean command string\n    def update_cmd(container, old, new):\n        cmds = container['commands']\n        # If commands is list of strings\n        for i, c in enumerate(cmds):\n            if old in c:\n                cmds[i] = c.replace(old, new)\n        # If it's a -c \"...\" structure (common in our specs)\n        if len(cmds) > 1 and cmds[0] == \"-c\": # bash -c ...\n             cmds[1] = cmds[1].replace(old, new)\n\n    task = spec['taskGroups'][0]['taskSpec']['runnables'][0]\n    container = task['container']\n\n    # --- Logic ---\n    if mode == \"pocket2mol\":\n        # Output: /output/{loop_id}/generation\n        new_out = f\"{base_gcs_path}/output/{loop_id}/generation\"\n        # Naive replace of common flag patterns\n        # We rely on the template having a known structure or placeholders would be better.\n        # Let's assume the template has specific flags we can regex sub.\n        cmd = container['commands'][2] # Assuming bash -c \"...\" is at index 2 or 1\n        # Fix: The templates usually have [\"/bin/bash\", \"-c\", \"python ...\"] or similar\n        # Let's handle the string content of the last arg\n        cmd_idx = -1\n        cmd_str = container['commands'][cmd_idx]\n\n        cmd_str = re.sub(r\"--outdir\\s+\\S+\", f\"--outdir {new_out}\", cmd_str)\n        cmd_str = re.sub(r\"num_samples: \\d+\", \"num_samples: 50\", cmd_str) # Fast test\n\n        container['commands'][cmd_idx] = cmd_str\n\n    elif mode == \"gnina\" or mode == \"txgemma\" or mode == \"rdkit\":\n        # Input: /output/{loop_id}/generation/SMILES.txt\n        inp_path = f\"{base_gcs_path}/output/{loop_id}/generation/SMILES.txt\"\n\n        cmd_idx = -1\n        cmd_str = container['commands'][cmd_idx]\n\n        if mode == \"txgemma\":\n             cmd_str = re.sub(r\"--input-file\\s+\\S+\", f\"--input-file {inp_path}\", cmd_str)\n        elif mode == \"rdkit\":\n             cmd_str = re.sub(r\"--input_csv\\s+\\S+\", f\"--input_csv {inp_path}\", cmd_str)\n        elif mode == \"gnina\":\n             # Gnina script is positional? Or flags? \n             # Looking at task spec: /usr/local/bin/run_gnina_docking.sh <input> <output>\n             # We just append/replace\n             parts = cmd_str.split()\n             # Finding the script call\n             if \"run_gnina_docking.sh\" in cmd_str:\n                 # Replace the arg after the script\n                 # This is brittle. Let's assume standard arg order from template.\n                 # Better: Use placeholders in template {{INPUT_Path}}\n                 pass\n\n        container['commands'][cmd_idx] = cmd_str\n\n    elif mode == \"joiner\":\n        # Inputs from generation and filters\n        smi = f\"{base_gcs_path}/output/{loop_id}/generation/SMILES.txt\"\n        rd = f\"{base_gcs_path}/input/{loop_id}/filters/rdkit_scores.csv\" \n        tx = f\"{base_gcs_path}/input/{loop_id}/filters/txgemma_results.csv\"\n        # Gnina is a directory\n        gn = f\"{base_gcs_path}/input/{loop_id}/filters/gnina_out\"\n        out = f\"{base_gcs_path}/output/{loop_id}/selection/joined_results.csv\"\n\n        # Command: Copy script -> Run\n        script_src = f\"{base_gcs_path}/data/scripts/join_results.py\"\n\n        # We need to construct the bash command\n        # \"echo 'Starting Join...' && cp /mnt/disks/gcs/data/scripts/join_results.py . && python3 join_results.py ...\"\n\n        cmd_str = (\n            f\"cp {script_src} . && \"\n            f\"python3 join_results.py \"\n            f\"--smiles {smi} \"\n            f\"--rdkit {rd} \"\n            f\"--txgemma {tx} \"\n            f\"--gnina {gn} \"\n            f\"--output {out} \"\n            f\"--batch_id {loop_id}\"\n        )\n\n        # Depending on template, we might need to wrap in /bin/bash -c\n        # If template command is [\"python3\", ...], we replace it with [\"/bin/bash\", \"-c\", cmd_str]\n\n        container['command'] = [\"/bin/bash\", \"-c\", cmd_str]\n        # Note: 'command' vs 'commands'. K8s uses 'command', Batch Spec 'commands'. \n        # Check carefully. The template uses 'commands'.\n        container['commands'] = [\"/bin/bash\", \"-c\", cmd_str]\n\n    elif mode == \"selection\":\n        inp = f\"{base_gcs_path}/output/{loop_id}/selection/joined_results.csv\"\n        out = f\"{base_gcs_path}/output/{loop_id}/selection/selected_candidates.csv\"\n\n        script_src = f\"{base_gcs_path}/data/scripts/run_vizier_optimization.py\"\n\n        cmd_str = (\n            f\"cp {script_src} . && \"\n            f\"python3 run_vizier_optimization.py \"\n            f\"--input {inp} \"\n            f\"--output {out} \"\n            f\"--top_n 50\"\n        )\n\n        container['commands'] = [\"/bin/bash\", \"-c\", cmd_str]\n\n    elif mode == \"mock_fep\":\n        # Input: Selected candidates\n        inp = f\"{base_gcs_path}/output/{loop_id}/selection/selected_candidates.csv\"\n        cmd_idx = 1 # [\"-c\", \"cmd\"]\n        c = container['commands'][cmd_idx]\n        c = re.sub(r\"--input\\s+\\S+\", f\"--input {inp}\", c)\n        container['commands'][cmd_idx] = c\n\n    return json.dumps(spec)\n\n"
+          ],
+          "image": "python:3.9"
+        }
+      },
+      "exec-patch-spec-5": {
+        "container": {
+          "args": [
+            "--executor_input",
+            "{{$}}",
+            "--function_to_execute",
+            "patch_spec"
+          ],
+          "command": [
+            "sh",
+            "-c",
+            "\nif ! [ -x \"$(command -v pip)\" ]; then\n    python3 -m ensurepip || python3 -m ensurepip --user || apt-get install python3-pip\nfi\n\nPIP_DISABLE_PIP_VERSION_CHECK=1 python3 -m pip install --quiet --no-warn-script-location 'kfp==2.15.2' '--no-deps' 'typing-extensions>=3.7.4,<5; python_version<\"3.9\"' && \"$0\" \"$@\"\n",
+            "sh",
+            "-ec",
+            "program_path=$(mktemp -d)\n\nprintf \"%s\" \"$0\" > \"$program_path/ephemeral_component.py\"\n_KFP_RUNTIME=true python3 -m kfp.dsl.executor_main                         --component_module_path                         \"$program_path/ephemeral_component.py\"                         \"$@\"\n",
+            "\nimport kfp\nfrom kfp import dsl\nfrom kfp.dsl import *\nfrom typing import *\n\ndef patch_spec(\n    spec_json_str: str,\n    loop_id: str,\n    mode: str,\n    base_gcs_path: str\n) -> str:\n    import json\n    import re\n\n    spec = json.loads(spec_json_str)\n\n    # Helper to clean command string\n    def update_cmd(container, old, new):\n        cmds = container['commands']\n        # If commands is list of strings\n        for i, c in enumerate(cmds):\n            if old in c:\n                cmds[i] = c.replace(old, new)\n        # If it's a -c \"...\" structure (common in our specs)\n        if len(cmds) > 1 and cmds[0] == \"-c\": # bash -c ...\n             cmds[1] = cmds[1].replace(old, new)\n\n    task = spec['taskGroups'][0]['taskSpec']['runnables'][0]\n    container = task['container']\n\n    # --- Logic ---\n    if mode == \"pocket2mol\":\n        # Output: /output/{loop_id}/generation\n        new_out = f\"{base_gcs_path}/output/{loop_id}/generation\"\n        # Naive replace of common flag patterns\n        # We rely on the template having a known structure or placeholders would be better.\n        # Let's assume the template has specific flags we can regex sub.\n        cmd = container['commands'][2] # Assuming bash -c \"...\" is at index 2 or 1\n        # Fix: The templates usually have [\"/bin/bash\", \"-c\", \"python ...\"] or similar\n        # Let's handle the string content of the last arg\n        cmd_idx = -1\n        cmd_str = container['commands'][cmd_idx]\n\n        cmd_str = re.sub(r\"--outdir\\s+\\S+\", f\"--outdir {new_out}\", cmd_str)\n        cmd_str = re.sub(r\"num_samples: \\d+\", \"num_samples: 50\", cmd_str) # Fast test\n\n        container['commands'][cmd_idx] = cmd_str\n\n    elif mode == \"gnina\" or mode == \"txgemma\" or mode == \"rdkit\":\n        # Input: /output/{loop_id}/generation/SMILES.txt\n        inp_path = f\"{base_gcs_path}/output/{loop_id}/generation/SMILES.txt\"\n\n        cmd_idx = -1\n        cmd_str = container['commands'][cmd_idx]\n\n        if mode == \"txgemma\":\n             cmd_str = re.sub(r\"--input-file\\s+\\S+\", f\"--input-file {inp_path}\", cmd_str)\n        elif mode == \"rdkit\":\n             cmd_str = re.sub(r\"--input_csv\\s+\\S+\", f\"--input_csv {inp_path}\", cmd_str)\n        elif mode == \"gnina\":\n             # Gnina script is positional? Or flags? \n             # Looking at task spec: /usr/local/bin/run_gnina_docking.sh <input> <output>\n             # We just append/replace\n             parts = cmd_str.split()\n             # Finding the script call\n             if \"run_gnina_docking.sh\" in cmd_str:\n                 # Replace the arg after the script\n                 # This is brittle. Let's assume standard arg order from template.\n                 # Better: Use placeholders in template {{INPUT_Path}}\n                 pass\n\n        container['commands'][cmd_idx] = cmd_str\n\n    elif mode == \"joiner\":\n        # Inputs from generation and filters\n        smi = f\"{base_gcs_path}/output/{loop_id}/generation/SMILES.txt\"\n        rd = f\"{base_gcs_path}/input/{loop_id}/filters/rdkit_scores.csv\" \n        tx = f\"{base_gcs_path}/input/{loop_id}/filters/txgemma_results.csv\"\n        # Gnina is a directory\n        gn = f\"{base_gcs_path}/input/{loop_id}/filters/gnina_out\"\n        out = f\"{base_gcs_path}/output/{loop_id}/selection/joined_results.csv\"\n\n        # Command: Copy script -> Run\n        script_src = f\"{base_gcs_path}/data/scripts/join_results.py\"\n\n        # We need to construct the bash command\n        # \"echo 'Starting Join...' && cp /mnt/disks/gcs/data/scripts/join_results.py . && python3 join_results.py ...\"\n\n        cmd_str = (\n            f\"cp {script_src} . && \"\n            f\"python3 join_results.py \"\n            f\"--smiles {smi} \"\n            f\"--rdkit {rd} \"\n            f\"--txgemma {tx} \"\n            f\"--gnina {gn} \"\n            f\"--output {out} \"\n            f\"--batch_id {loop_id}\"\n        )\n\n        # Depending on template, we might need to wrap in /bin/bash -c\n        # If template command is [\"python3\", ...], we replace it with [\"/bin/bash\", \"-c\", cmd_str]\n\n        container['command'] = [\"/bin/bash\", \"-c\", cmd_str]\n        # Note: 'command' vs 'commands'. K8s uses 'command', Batch Spec 'commands'. \n        # Check carefully. The template uses 'commands'.\n        container['commands'] = [\"/bin/bash\", \"-c\", cmd_str]\n\n    elif mode == \"selection\":\n        inp = f\"{base_gcs_path}/output/{loop_id}/selection/joined_results.csv\"\n        out = f\"{base_gcs_path}/output/{loop_id}/selection/selected_candidates.csv\"\n\n        script_src = f\"{base_gcs_path}/data/scripts/run_vizier_optimization.py\"\n\n        cmd_str = (\n            f\"cp {script_src} . && \"\n            f\"python3 run_vizier_optimization.py \"\n            f\"--input {inp} \"\n            f\"--output {out} \"\n            f\"--top_n 50\"\n        )\n\n        container['commands'] = [\"/bin/bash\", \"-c\", cmd_str]\n\n    elif mode == \"mock_fep\":\n        # Input: Selected candidates\n        inp = f\"{base_gcs_path}/output/{loop_id}/selection/selected_candidates.csv\"\n        cmd_idx = 1 # [\"-c\", \"cmd\"]\n        c = container['commands'][cmd_idx]\n        c = re.sub(r\"--input\\s+\\S+\", f\"--input {inp}\", c)\n        container['commands'][cmd_idx] = c\n\n    return json.dumps(spec)\n\n"
+          ],
+          "image": "python:3.9"
+        }
+      },
+      "exec-patch-spec-6": {
+        "container": {
+          "args": [
+            "--executor_input",
+            "{{$}}",
+            "--function_to_execute",
+            "patch_spec"
+          ],
+          "command": [
+            "sh",
+            "-c",
+            "\nif ! [ -x \"$(command -v pip)\" ]; then\n    python3 -m ensurepip || python3 -m ensurepip --user || apt-get install python3-pip\nfi\n\nPIP_DISABLE_PIP_VERSION_CHECK=1 python3 -m pip install --quiet --no-warn-script-location 'kfp==2.15.2' '--no-deps' 'typing-extensions>=3.7.4,<5; python_version<\"3.9\"' && \"$0\" \"$@\"\n",
+            "sh",
+            "-ec",
+            "program_path=$(mktemp -d)\n\nprintf \"%s\" \"$0\" > \"$program_path/ephemeral_component.py\"\n_KFP_RUNTIME=true python3 -m kfp.dsl.executor_main                         --component_module_path                         \"$program_path/ephemeral_component.py\"                         \"$@\"\n",
+            "\nimport kfp\nfrom kfp import dsl\nfrom kfp.dsl import *\nfrom typing import *\n\ndef patch_spec(\n    spec_json_str: str,\n    loop_id: str,\n    mode: str,\n    base_gcs_path: str\n) -> str:\n    import json\n    import re\n\n    spec = json.loads(spec_json_str)\n\n    # Helper to clean command string\n    def update_cmd(container, old, new):\n        cmds = container['commands']\n        # If commands is list of strings\n        for i, c in enumerate(cmds):\n            if old in c:\n                cmds[i] = c.replace(old, new)\n        # If it's a -c \"...\" structure (common in our specs)\n        if len(cmds) > 1 and cmds[0] == \"-c\": # bash -c ...\n             cmds[1] = cmds[1].replace(old, new)\n\n    task = spec['taskGroups'][0]['taskSpec']['runnables'][0]\n    container = task['container']\n\n    # --- Logic ---\n    if mode == \"pocket2mol\":\n        # Output: /output/{loop_id}/generation\n        new_out = f\"{base_gcs_path}/output/{loop_id}/generation\"\n        # Naive replace of common flag patterns\n        # We rely on the template having a known structure or placeholders would be better.\n        # Let's assume the template has specific flags we can regex sub.\n        cmd = container['commands'][2] # Assuming bash -c \"...\" is at index 2 or 1\n        # Fix: The templates usually have [\"/bin/bash\", \"-c\", \"python ...\"] or similar\n        # Let's handle the string content of the last arg\n        cmd_idx = -1\n        cmd_str = container['commands'][cmd_idx]\n\n        cmd_str = re.sub(r\"--outdir\\s+\\S+\", f\"--outdir {new_out}\", cmd_str)\n        cmd_str = re.sub(r\"num_samples: \\d+\", \"num_samples: 50\", cmd_str) # Fast test\n\n        container['commands'][cmd_idx] = cmd_str\n\n    elif mode == \"gnina\" or mode == \"txgemma\" or mode == \"rdkit\":\n        # Input: /output/{loop_id}/generation/SMILES.txt\n        inp_path = f\"{base_gcs_path}/output/{loop_id}/generation/SMILES.txt\"\n\n        cmd_idx = -1\n        cmd_str = container['commands'][cmd_idx]\n\n        if mode == \"txgemma\":\n             cmd_str = re.sub(r\"--input-file\\s+\\S+\", f\"--input-file {inp_path}\", cmd_str)\n        elif mode == \"rdkit\":\n             cmd_str = re.sub(r\"--input_csv\\s+\\S+\", f\"--input_csv {inp_path}\", cmd_str)\n        elif mode == \"gnina\":\n             # Gnina script is positional? Or flags? \n             # Looking at task spec: /usr/local/bin/run_gnina_docking.sh <input> <output>\n             # We just append/replace\n             parts = cmd_str.split()\n             # Finding the script call\n             if \"run_gnina_docking.sh\" in cmd_str:\n                 # Replace the arg after the script\n                 # This is brittle. Let's assume standard arg order from template.\n                 # Better: Use placeholders in template {{INPUT_Path}}\n                 pass\n\n        container['commands'][cmd_idx] = cmd_str\n\n    elif mode == \"joiner\":\n        # Inputs from generation and filters\n        smi = f\"{base_gcs_path}/output/{loop_id}/generation/SMILES.txt\"\n        rd = f\"{base_gcs_path}/input/{loop_id}/filters/rdkit_scores.csv\" \n        tx = f\"{base_gcs_path}/input/{loop_id}/filters/txgemma_results.csv\"\n        # Gnina is a directory\n        gn = f\"{base_gcs_path}/input/{loop_id}/filters/gnina_out\"\n        out = f\"{base_gcs_path}/output/{loop_id}/selection/joined_results.csv\"\n\n        # Command: Copy script -> Run\n        script_src = f\"{base_gcs_path}/data/scripts/join_results.py\"\n\n        # We need to construct the bash command\n        # \"echo 'Starting Join...' && cp /mnt/disks/gcs/data/scripts/join_results.py . && python3 join_results.py ...\"\n\n        cmd_str = (\n            f\"cp {script_src} . && \"\n            f\"python3 join_results.py \"\n            f\"--smiles {smi} \"\n            f\"--rdkit {rd} \"\n            f\"--txgemma {tx} \"\n            f\"--gnina {gn} \"\n            f\"--output {out} \"\n            f\"--batch_id {loop_id}\"\n        )\n\n        # Depending on template, we might need to wrap in /bin/bash -c\n        # If template command is [\"python3\", ...], we replace it with [\"/bin/bash\", \"-c\", cmd_str]\n\n        container['command'] = [\"/bin/bash\", \"-c\", cmd_str]\n        # Note: 'command' vs 'commands'. K8s uses 'command', Batch Spec 'commands'. \n        # Check carefully. The template uses 'commands'.\n        container['commands'] = [\"/bin/bash\", \"-c\", cmd_str]\n\n    elif mode == \"selection\":\n        inp = f\"{base_gcs_path}/output/{loop_id}/selection/joined_results.csv\"\n        out = f\"{base_gcs_path}/output/{loop_id}/selection/selected_candidates.csv\"\n\n        script_src = f\"{base_gcs_path}/data/scripts/run_vizier_optimization.py\"\n\n        cmd_str = (\n            f\"cp {script_src} . && \"\n            f\"python3 run_vizier_optimization.py \"\n            f\"--input {inp} \"\n            f\"--output {out} \"\n            f\"--top_n 50\"\n        )\n\n        container['commands'] = [\"/bin/bash\", \"-c\", cmd_str]\n\n    elif mode == \"mock_fep\":\n        # Input: Selected candidates\n        inp = f\"{base_gcs_path}/output/{loop_id}/selection/selected_candidates.csv\"\n        cmd_idx = 1 # [\"-c\", \"cmd\"]\n        c = container['commands'][cmd_idx]\n        c = re.sub(r\"--input\\s+\\S+\", f\"--input {inp}\", c)\n        container['commands'][cmd_idx] = c\n\n    return json.dumps(spec)\n\n"
+          ],
+          "image": "python:3.9"
+        }
+      },
+      "exec-patch-spec-7": {
+        "container": {
+          "args": [
+            "--executor_input",
+            "{{$}}",
+            "--function_to_execute",
+            "patch_spec"
+          ],
+          "command": [
+            "sh",
+            "-c",
+            "\nif ! [ -x \"$(command -v pip)\" ]; then\n    python3 -m ensurepip || python3 -m ensurepip --user || apt-get install python3-pip\nfi\n\nPIP_DISABLE_PIP_VERSION_CHECK=1 python3 -m pip install --quiet --no-warn-script-location 'kfp==2.15.2' '--no-deps' 'typing-extensions>=3.7.4,<5; python_version<\"3.9\"' && \"$0\" \"$@\"\n",
+            "sh",
+            "-ec",
+            "program_path=$(mktemp -d)\n\nprintf \"%s\" \"$0\" > \"$program_path/ephemeral_component.py\"\n_KFP_RUNTIME=true python3 -m kfp.dsl.executor_main                         --component_module_path                         \"$program_path/ephemeral_component.py\"                         \"$@\"\n",
+            "\nimport kfp\nfrom kfp import dsl\nfrom kfp.dsl import *\nfrom typing import *\n\ndef patch_spec(\n    spec_json_str: str,\n    loop_id: str,\n    mode: str,\n    base_gcs_path: str\n) -> str:\n    import json\n    import re\n\n    spec = json.loads(spec_json_str)\n\n    # Helper to clean command string\n    def update_cmd(container, old, new):\n        cmds = container['commands']\n        # If commands is list of strings\n        for i, c in enumerate(cmds):\n            if old in c:\n                cmds[i] = c.replace(old, new)\n        # If it's a -c \"...\" structure (common in our specs)\n        if len(cmds) > 1 and cmds[0] == \"-c\": # bash -c ...\n             cmds[1] = cmds[1].replace(old, new)\n\n    task = spec['taskGroups'][0]['taskSpec']['runnables'][0]\n    container = task['container']\n\n    # --- Logic ---\n    if mode == \"pocket2mol\":\n        # Output: /output/{loop_id}/generation\n        new_out = f\"{base_gcs_path}/output/{loop_id}/generation\"\n        # Naive replace of common flag patterns\n        # We rely on the template having a known structure or placeholders would be better.\n        # Let's assume the template has specific flags we can regex sub.\n        cmd = container['commands'][2] # Assuming bash -c \"...\" is at index 2 or 1\n        # Fix: The templates usually have [\"/bin/bash\", \"-c\", \"python ...\"] or similar\n        # Let's handle the string content of the last arg\n        cmd_idx = -1\n        cmd_str = container['commands'][cmd_idx]\n\n        cmd_str = re.sub(r\"--outdir\\s+\\S+\", f\"--outdir {new_out}\", cmd_str)\n        cmd_str = re.sub(r\"num_samples: \\d+\", \"num_samples: 50\", cmd_str) # Fast test\n\n        container['commands'][cmd_idx] = cmd_str\n\n    elif mode == \"gnina\" or mode == \"txgemma\" or mode == \"rdkit\":\n        # Input: /output/{loop_id}/generation/SMILES.txt\n        inp_path = f\"{base_gcs_path}/output/{loop_id}/generation/SMILES.txt\"\n\n        cmd_idx = -1\n        cmd_str = container['commands'][cmd_idx]\n\n        if mode == \"txgemma\":\n             cmd_str = re.sub(r\"--input-file\\s+\\S+\", f\"--input-file {inp_path}\", cmd_str)\n        elif mode == \"rdkit\":\n             cmd_str = re.sub(r\"--input_csv\\s+\\S+\", f\"--input_csv {inp_path}\", cmd_str)\n        elif mode == \"gnina\":\n             # Gnina script is positional? Or flags? \n             # Looking at task spec: /usr/local/bin/run_gnina_docking.sh <input> <output>\n             # We just append/replace\n             parts = cmd_str.split()\n             # Finding the script call\n             if \"run_gnina_docking.sh\" in cmd_str:\n                 # Replace the arg after the script\n                 # This is brittle. Let's assume standard arg order from template.\n                 # Better: Use placeholders in template {{INPUT_Path}}\n                 pass\n\n        container['commands'][cmd_idx] = cmd_str\n\n    elif mode == \"joiner\":\n        # Inputs from generation and filters\n        smi = f\"{base_gcs_path}/output/{loop_id}/generation/SMILES.txt\"\n        rd = f\"{base_gcs_path}/input/{loop_id}/filters/rdkit_scores.csv\" \n        tx = f\"{base_gcs_path}/input/{loop_id}/filters/txgemma_results.csv\"\n        # Gnina is a directory\n        gn = f\"{base_gcs_path}/input/{loop_id}/filters/gnina_out\"\n        out = f\"{base_gcs_path}/output/{loop_id}/selection/joined_results.csv\"\n\n        # Command: Copy script -> Run\n        script_src = f\"{base_gcs_path}/data/scripts/join_results.py\"\n\n        # We need to construct the bash command\n        # \"echo 'Starting Join...' && cp /mnt/disks/gcs/data/scripts/join_results.py . && python3 join_results.py ...\"\n\n        cmd_str = (\n            f\"cp {script_src} . && \"\n            f\"python3 join_results.py \"\n            f\"--smiles {smi} \"\n            f\"--rdkit {rd} \"\n            f\"--txgemma {tx} \"\n            f\"--gnina {gn} \"\n            f\"--output {out} \"\n            f\"--batch_id {loop_id}\"\n        )\n\n        # Depending on template, we might need to wrap in /bin/bash -c\n        # If template command is [\"python3\", ...], we replace it with [\"/bin/bash\", \"-c\", cmd_str]\n\n        container['command'] = [\"/bin/bash\", \"-c\", cmd_str]\n        # Note: 'command' vs 'commands'. K8s uses 'command', Batch Spec 'commands'. \n        # Check carefully. The template uses 'commands'.\n        container['commands'] = [\"/bin/bash\", \"-c\", cmd_str]\n\n    elif mode == \"selection\":\n        inp = f\"{base_gcs_path}/output/{loop_id}/selection/joined_results.csv\"\n        out = f\"{base_gcs_path}/output/{loop_id}/selection/selected_candidates.csv\"\n\n        script_src = f\"{base_gcs_path}/data/scripts/run_vizier_optimization.py\"\n\n        cmd_str = (\n            f\"cp {script_src} . && \"\n            f\"python3 run_vizier_optimization.py \"\n            f\"--input {inp} \"\n            f\"--output {out} \"\n            f\"--top_n 50\"\n        )\n\n        container['commands'] = [\"/bin/bash\", \"-c\", cmd_str]\n\n    elif mode == \"mock_fep\":\n        # Input: Selected candidates\n        inp = f\"{base_gcs_path}/output/{loop_id}/selection/selected_candidates.csv\"\n        cmd_idx = 1 # [\"-c\", \"cmd\"]\n        c = container['commands'][cmd_idx]\n        c = re.sub(r\"--input\\s+\\S+\", f\"--input {inp}\", c)\n        container['commands'][cmd_idx] = c\n\n    return json.dumps(spec)\n\n"
+          ],
+          "image": "python:3.9"
+        }
+      },
+      "exec-submit-batch-job": {
+        "container": {
+          "args": [
+            "{{$.inputs.parameters['project']}}",
+            "{{$.inputs.parameters['location']}}",
+            "{{$.inputs.parameters['job_spec']}}"
+          ],
+          "command": [
+            "sh",
+            "-c",
+            "\n            set -e -x\n\n            # Create a temporary file for the job spec\n            JOB_SPEC_FILE=$(mktemp)\n            echo \"$2\" > \"$JOB_SPEC_FILE\"\n\n            # Authenticate using the environment's service account\n            gcloud auth application-default print-access-token > /tmp/token\n            export CLOUDSDK_AUTH_ACCESS_TOKEN=$(cat /tmp/token)\n\n            # --- CORRECTED AND ROBUST JOB NAME ---\n            # This command creates a short, random, alphanumeric string that is safe for job names.\n            RANDOM_SUFFIX=$(head /dev/urandom | tr -dc a-z0-9 | head -c 8)\n            JOB_NAME=\"pipeline-job-$(date +%s)-${RANDOM_SUFFIX}\"\n            echo \"Submitting Batch job: ${JOB_NAME}\"\n\n            # Submit the job using the correct '--config' flag\n            gcloud beta batch jobs submit ${JOB_NAME} \\\n                --project=\"$0\" \\\n                --location=\"$1\" \\\n                --config=\"$JOB_SPEC_FILE\"\n\n            echo \"Job submitted. Now polling for completion...\"\n\n            # Loop until the job is no longer in a 'RUNNING' or 'QUEUED' state.\n            while true; do\n                # Get the job's state.\n                JOB_STATE=$(gcloud beta batch jobs describe ${JOB_NAME} \\\n                    --project=\"$0\" \\\n                    --location=\"$1\" \\\n                    --format=\"value(status.state)\")\n\n                echo \"Current job state: ${JOB_STATE}\"\n\n                if [ \"${JOB_STATE}\" = \"SUCCEEDED\" ]; then\n                    echo \"Job ${JOB_NAME} succeeded.\"\n                    exit 0\n                elif [ \"${JOB_STATE}\" = \"FAILED\" ]; then\n                    echo \"Job ${JOB_NAME} failed.\"\n                    exit 1\n                elif [ \"${JOB_STATE}\" = \"DELETED\" ]; then\n                    echo \"Job ${JOB_NAME} was deleted.\"\n                    exit 1\n                fi\n\n                # Wait for 30 seconds before checking again\n                sleep 30\n            done\n            "
+          ],
+          "image": "gcr.io/google.com/cloudsdktool/cloud-sdk:latest"
+        }
+      },
+      "exec-submit-batch-job-2": {
+        "container": {
+          "args": [
+            "{{$.inputs.parameters['project']}}",
+            "{{$.inputs.parameters['location']}}",
+            "{{$.inputs.parameters['job_spec']}}"
+          ],
+          "command": [
+            "sh",
+            "-c",
+            "\n            set -e -x\n\n            # Create a temporary file for the job spec\n            JOB_SPEC_FILE=$(mktemp)\n            echo \"$2\" > \"$JOB_SPEC_FILE\"\n\n            # Authenticate using the environment's service account\n            gcloud auth application-default print-access-token > /tmp/token\n            export CLOUDSDK_AUTH_ACCESS_TOKEN=$(cat /tmp/token)\n\n            # --- CORRECTED AND ROBUST JOB NAME ---\n            # This command creates a short, random, alphanumeric string that is safe for job names.\n            RANDOM_SUFFIX=$(head /dev/urandom | tr -dc a-z0-9 | head -c 8)\n            JOB_NAME=\"pipeline-job-$(date +%s)-${RANDOM_SUFFIX}\"\n            echo \"Submitting Batch job: ${JOB_NAME}\"\n\n            # Submit the job using the correct '--config' flag\n            gcloud beta batch jobs submit ${JOB_NAME} \\\n                --project=\"$0\" \\\n                --location=\"$1\" \\\n                --config=\"$JOB_SPEC_FILE\"\n\n            echo \"Job submitted. Now polling for completion...\"\n\n            # Loop until the job is no longer in a 'RUNNING' or 'QUEUED' state.\n            while true; do\n                # Get the job's state.\n                JOB_STATE=$(gcloud beta batch jobs describe ${JOB_NAME} \\\n                    --project=\"$0\" \\\n                    --location=\"$1\" \\\n                    --format=\"value(status.state)\")\n\n                echo \"Current job state: ${JOB_STATE}\"\n\n                if [ \"${JOB_STATE}\" = \"SUCCEEDED\" ]; then\n                    echo \"Job ${JOB_NAME} succeeded.\"\n                    exit 0\n                elif [ \"${JOB_STATE}\" = \"FAILED\" ]; then\n                    echo \"Job ${JOB_NAME} failed.\"\n                    exit 1\n                elif [ \"${JOB_STATE}\" = \"DELETED\" ]; then\n                    echo \"Job ${JOB_NAME} was deleted.\"\n                    exit 1\n                fi\n\n                # Wait for 30 seconds before checking again\n                sleep 30\n            done\n            "
+          ],
+          "image": "gcr.io/google.com/cloudsdktool/cloud-sdk:latest"
+        }
+      },
+      "exec-submit-batch-job-3": {
+        "container": {
+          "args": [
+            "{{$.inputs.parameters['project']}}",
+            "{{$.inputs.parameters['location']}}",
+            "{{$.inputs.parameters['job_spec']}}"
+          ],
+          "command": [
+            "sh",
+            "-c",
+            "\n            set -e -x\n\n            # Create a temporary file for the job spec\n            JOB_SPEC_FILE=$(mktemp)\n            echo \"$2\" > \"$JOB_SPEC_FILE\"\n\n            # Authenticate using the environment's service account\n            gcloud auth application-default print-access-token > /tmp/token\n            export CLOUDSDK_AUTH_ACCESS_TOKEN=$(cat /tmp/token)\n\n            # --- CORRECTED AND ROBUST JOB NAME ---\n            # This command creates a short, random, alphanumeric string that is safe for job names.\n            RANDOM_SUFFIX=$(head /dev/urandom | tr -dc a-z0-9 | head -c 8)\n            JOB_NAME=\"pipeline-job-$(date +%s)-${RANDOM_SUFFIX}\"\n            echo \"Submitting Batch job: ${JOB_NAME}\"\n\n            # Submit the job using the correct '--config' flag\n            gcloud beta batch jobs submit ${JOB_NAME} \\\n                --project=\"$0\" \\\n                --location=\"$1\" \\\n                --config=\"$JOB_SPEC_FILE\"\n\n            echo \"Job submitted. Now polling for completion...\"\n\n            # Loop until the job is no longer in a 'RUNNING' or 'QUEUED' state.\n            while true; do\n                # Get the job's state.\n                JOB_STATE=$(gcloud beta batch jobs describe ${JOB_NAME} \\\n                    --project=\"$0\" \\\n                    --location=\"$1\" \\\n                    --format=\"value(status.state)\")\n\n                echo \"Current job state: ${JOB_STATE}\"\n\n                if [ \"${JOB_STATE}\" = \"SUCCEEDED\" ]; then\n                    echo \"Job ${JOB_NAME} succeeded.\"\n                    exit 0\n                elif [ \"${JOB_STATE}\" = \"FAILED\" ]; then\n                    echo \"Job ${JOB_NAME} failed.\"\n                    exit 1\n                elif [ \"${JOB_STATE}\" = \"DELETED\" ]; then\n                    echo \"Job ${JOB_NAME} was deleted.\"\n                    exit 1\n                fi\n\n                # Wait for 30 seconds before checking again\n                sleep 30\n            done\n            "
+          ],
+          "image": "gcr.io/google.com/cloudsdktool/cloud-sdk:latest"
+        }
+      },
+      "exec-submit-batch-job-4": {
+        "container": {
+          "args": [
+            "{{$.inputs.parameters['project']}}",
+            "{{$.inputs.parameters['location']}}",
+            "{{$.inputs.parameters['job_spec']}}"
+          ],
+          "command": [
+            "sh",
+            "-c",
+            "\n            set -e -x\n\n            # Create a temporary file for the job spec\n            JOB_SPEC_FILE=$(mktemp)\n            echo \"$2\" > \"$JOB_SPEC_FILE\"\n\n            # Authenticate using the environment's service account\n            gcloud auth application-default print-access-token > /tmp/token\n            export CLOUDSDK_AUTH_ACCESS_TOKEN=$(cat /tmp/token)\n\n            # --- CORRECTED AND ROBUST JOB NAME ---\n            # This command creates a short, random, alphanumeric string that is safe for job names.\n            RANDOM_SUFFIX=$(head /dev/urandom | tr -dc a-z0-9 | head -c 8)\n            JOB_NAME=\"pipeline-job-$(date +%s)-${RANDOM_SUFFIX}\"\n            echo \"Submitting Batch job: ${JOB_NAME}\"\n\n            # Submit the job using the correct '--config' flag\n            gcloud beta batch jobs submit ${JOB_NAME} \\\n                --project=\"$0\" \\\n                --location=\"$1\" \\\n                --config=\"$JOB_SPEC_FILE\"\n\n            echo \"Job submitted. Now polling for completion...\"\n\n            # Loop until the job is no longer in a 'RUNNING' or 'QUEUED' state.\n            while true; do\n                # Get the job's state.\n                JOB_STATE=$(gcloud beta batch jobs describe ${JOB_NAME} \\\n                    --project=\"$0\" \\\n                    --location=\"$1\" \\\n                    --format=\"value(status.state)\")\n\n                echo \"Current job state: ${JOB_STATE}\"\n\n                if [ \"${JOB_STATE}\" = \"SUCCEEDED\" ]; then\n                    echo \"Job ${JOB_NAME} succeeded.\"\n                    exit 0\n                elif [ \"${JOB_STATE}\" = \"FAILED\" ]; then\n                    echo \"Job ${JOB_NAME} failed.\"\n                    exit 1\n                elif [ \"${JOB_STATE}\" = \"DELETED\" ]; then\n                    echo \"Job ${JOB_NAME} was deleted.\"\n                    exit 1\n                fi\n\n                # Wait for 30 seconds before checking again\n                sleep 30\n            done\n            "
+          ],
+          "image": "gcr.io/google.com/cloudsdktool/cloud-sdk:latest"
+        }
+      },
+      "exec-submit-batch-job-5": {
+        "container": {
+          "args": [
+            "{{$.inputs.parameters['project']}}",
+            "{{$.inputs.parameters['location']}}",
+            "{{$.inputs.parameters['job_spec']}}"
+          ],
+          "command": [
+            "sh",
+            "-c",
+            "\n            set -e -x\n\n            # Create a temporary file for the job spec\n            JOB_SPEC_FILE=$(mktemp)\n            echo \"$2\" > \"$JOB_SPEC_FILE\"\n\n            # Authenticate using the environment's service account\n            gcloud auth application-default print-access-token > /tmp/token\n            export CLOUDSDK_AUTH_ACCESS_TOKEN=$(cat /tmp/token)\n\n            # --- CORRECTED AND ROBUST JOB NAME ---\n            # This command creates a short, random, alphanumeric string that is safe for job names.\n            RANDOM_SUFFIX=$(head /dev/urandom | tr -dc a-z0-9 | head -c 8)\n            JOB_NAME=\"pipeline-job-$(date +%s)-${RANDOM_SUFFIX}\"\n            echo \"Submitting Batch job: ${JOB_NAME}\"\n\n            # Submit the job using the correct '--config' flag\n            gcloud beta batch jobs submit ${JOB_NAME} \\\n                --project=\"$0\" \\\n                --location=\"$1\" \\\n                --config=\"$JOB_SPEC_FILE\"\n\n            echo \"Job submitted. Now polling for completion...\"\n\n            # Loop until the job is no longer in a 'RUNNING' or 'QUEUED' state.\n            while true; do\n                # Get the job's state.\n                JOB_STATE=$(gcloud beta batch jobs describe ${JOB_NAME} \\\n                    --project=\"$0\" \\\n                    --location=\"$1\" \\\n                    --format=\"value(status.state)\")\n\n                echo \"Current job state: ${JOB_STATE}\"\n\n                if [ \"${JOB_STATE}\" = \"SUCCEEDED\" ]; then\n                    echo \"Job ${JOB_NAME} succeeded.\"\n                    exit 0\n                elif [ \"${JOB_STATE}\" = \"FAILED\" ]; then\n                    echo \"Job ${JOB_NAME} failed.\"\n                    exit 1\n                elif [ \"${JOB_STATE}\" = \"DELETED\" ]; then\n                    echo \"Job ${JOB_NAME} was deleted.\"\n                    exit 1\n                fi\n\n                # Wait for 30 seconds before checking again\n                sleep 30\n            done\n            "
+          ],
+          "image": "gcr.io/google.com/cloudsdktool/cloud-sdk:latest"
+        }
+      },
+      "exec-submit-batch-job-6": {
+        "container": {
+          "args": [
+            "{{$.inputs.parameters['project']}}",
+            "{{$.inputs.parameters['location']}}",
+            "{{$.inputs.parameters['job_spec']}}"
+          ],
+          "command": [
+            "sh",
+            "-c",
+            "\n            set -e -x\n\n            # Create a temporary file for the job spec\n            JOB_SPEC_FILE=$(mktemp)\n            echo \"$2\" > \"$JOB_SPEC_FILE\"\n\n            # Authenticate using the environment's service account\n            gcloud auth application-default print-access-token > /tmp/token\n            export CLOUDSDK_AUTH_ACCESS_TOKEN=$(cat /tmp/token)\n\n            # --- CORRECTED AND ROBUST JOB NAME ---\n            # This command creates a short, random, alphanumeric string that is safe for job names.\n            RANDOM_SUFFIX=$(head /dev/urandom | tr -dc a-z0-9 | head -c 8)\n            JOB_NAME=\"pipeline-job-$(date +%s)-${RANDOM_SUFFIX}\"\n            echo \"Submitting Batch job: ${JOB_NAME}\"\n\n            # Submit the job using the correct '--config' flag\n            gcloud beta batch jobs submit ${JOB_NAME} \\\n                --project=\"$0\" \\\n                --location=\"$1\" \\\n                --config=\"$JOB_SPEC_FILE\"\n\n            echo \"Job submitted. Now polling for completion...\"\n\n            # Loop until the job is no longer in a 'RUNNING' or 'QUEUED' state.\n            while true; do\n                # Get the job's state.\n                JOB_STATE=$(gcloud beta batch jobs describe ${JOB_NAME} \\\n                    --project=\"$0\" \\\n                    --location=\"$1\" \\\n                    --format=\"value(status.state)\")\n\n                echo \"Current job state: ${JOB_STATE}\"\n\n                if [ \"${JOB_STATE}\" = \"SUCCEEDED\" ]; then\n                    echo \"Job ${JOB_NAME} succeeded.\"\n                    exit 0\n                elif [ \"${JOB_STATE}\" = \"FAILED\" ]; then\n                    echo \"Job ${JOB_NAME} failed.\"\n                    exit 1\n                elif [ \"${JOB_STATE}\" = \"DELETED\" ]; then\n                    echo \"Job ${JOB_NAME} was deleted.\"\n                    exit 1\n                fi\n\n                # Wait for 30 seconds before checking again\n                sleep 30\n            done\n            "
+          ],
+          "image": "gcr.io/google.com/cloudsdktool/cloud-sdk:latest"
+        }
+      },
+      "exec-submit-batch-job-7": {
+        "container": {
+          "args": [
+            "{{$.inputs.parameters['project']}}",
+            "{{$.inputs.parameters['location']}}",
+            "{{$.inputs.parameters['job_spec']}}"
+          ],
+          "command": [
+            "sh",
+            "-c",
+            "\n            set -e -x\n\n            # Create a temporary file for the job spec\n            JOB_SPEC_FILE=$(mktemp)\n            echo \"$2\" > \"$JOB_SPEC_FILE\"\n\n            # Authenticate using the environment's service account\n            gcloud auth application-default print-access-token > /tmp/token\n            export CLOUDSDK_AUTH_ACCESS_TOKEN=$(cat /tmp/token)\n\n            # --- CORRECTED AND ROBUST JOB NAME ---\n            # This command creates a short, random, alphanumeric string that is safe for job names.\n            RANDOM_SUFFIX=$(head /dev/urandom | tr -dc a-z0-9 | head -c 8)\n            JOB_NAME=\"pipeline-job-$(date +%s)-${RANDOM_SUFFIX}\"\n            echo \"Submitting Batch job: ${JOB_NAME}\"\n\n            # Submit the job using the correct '--config' flag\n            gcloud beta batch jobs submit ${JOB_NAME} \\\n                --project=\"$0\" \\\n                --location=\"$1\" \\\n                --config=\"$JOB_SPEC_FILE\"\n\n            echo \"Job submitted. Now polling for completion...\"\n\n            # Loop until the job is no longer in a 'RUNNING' or 'QUEUED' state.\n            while true; do\n                # Get the job's state.\n                JOB_STATE=$(gcloud beta batch jobs describe ${JOB_NAME} \\\n                    --project=\"$0\" \\\n                    --location=\"$1\" \\\n                    --format=\"value(status.state)\")\n\n                echo \"Current job state: ${JOB_STATE}\"\n\n                if [ \"${JOB_STATE}\" = \"SUCCEEDED\" ]; then\n                    echo \"Job ${JOB_NAME} succeeded.\"\n                    exit 0\n                elif [ \"${JOB_STATE}\" = \"FAILED\" ]; then\n                    echo \"Job ${JOB_NAME} failed.\"\n                    exit 1\n                elif [ \"${JOB_STATE}\" = \"DELETED\" ]; then\n                    echo \"Job ${JOB_NAME} was deleted.\"\n                    exit 1\n                fi\n\n                # Wait for 30 seconds before checking again\n                sleep 30\n            done\n            "
+          ],
+          "image": "gcr.io/google.com/cloudsdktool/cloud-sdk:latest"
+        }
+      },
+      "exec-submit-batch-job-8": {
+        "container": {
+          "args": [
+            "{{$.inputs.parameters['project']}}",
+            "{{$.inputs.parameters['location']}}",
+            "{{$.inputs.parameters['job_spec']}}"
+          ],
+          "command": [
+            "sh",
+            "-c",
+            "\n            set -e -x\n\n            # Create a temporary file for the job spec\n            JOB_SPEC_FILE=$(mktemp)\n            echo \"$2\" > \"$JOB_SPEC_FILE\"\n\n            # Authenticate using the environment's service account\n            gcloud auth application-default print-access-token > /tmp/token\n            export CLOUDSDK_AUTH_ACCESS_TOKEN=$(cat /tmp/token)\n\n            # --- CORRECTED AND ROBUST JOB NAME ---\n            # This command creates a short, random, alphanumeric string that is safe for job names.\n            RANDOM_SUFFIX=$(head /dev/urandom | tr -dc a-z0-9 | head -c 8)\n            JOB_NAME=\"pipeline-job-$(date +%s)-${RANDOM_SUFFIX}\"\n            echo \"Submitting Batch job: ${JOB_NAME}\"\n\n            # Submit the job using the correct '--config' flag\n            gcloud beta batch jobs submit ${JOB_NAME} \\\n                --project=\"$0\" \\\n                --location=\"$1\" \\\n                --config=\"$JOB_SPEC_FILE\"\n\n            echo \"Job submitted. Now polling for completion...\"\n\n            # Loop until the job is no longer in a 'RUNNING' or 'QUEUED' state.\n            while true; do\n                # Get the job's state.\n                JOB_STATE=$(gcloud beta batch jobs describe ${JOB_NAME} \\\n                    --project=\"$0\" \\\n                    --location=\"$1\" \\\n                    --format=\"value(status.state)\")\n\n                echo \"Current job state: ${JOB_STATE}\"\n\n                if [ \"${JOB_STATE}\" = \"SUCCEEDED\" ]; then\n                    echo \"Job ${JOB_NAME} succeeded.\"\n                    exit 0\n                elif [ \"${JOB_STATE}\" = \"FAILED\" ]; then\n                    echo \"Job ${JOB_NAME} failed.\"\n                    exit 1\n                elif [ \"${JOB_STATE}\" = \"DELETED\" ]; then\n                    echo \"Job ${JOB_NAME} was deleted.\"\n                    exit 1\n                fi\n\n                # Wait for 30 seconds before checking again\n                sleep 30\n            done\n            "
+          ],
+          "image": "gcr.io/google.com/cloudsdktool/cloud-sdk:latest"
+        }
+      }
+    }
+  },
+  "pipelineInfo": {
+    "name": "e2e-drug-discovery-v5"
+  },
+  "root": {
+    "dag": {
+      "tasks": {
+        "condition-1": {
+          "componentRef": {
+            "name": "comp-condition-1"
+          },
+          "dependentTasks": [
+            "submit-batch-job-6"
+          ],
+          "inputs": {
+            "parameters": {
+              "pipelinechannel--loop_id": {
+                "componentInputParameter": "loop_id"
+              },
+              "pipelinechannel--use_mock_oracle": {
+                "componentInputParameter": "use_mock_oracle"
+              }
+            }
+          },
+          "taskInfo": {
+            "name": "Mock Oracle"
+          },
+          "triggerPolicy": {
+            "condition": "inputs.parameter_values['pipelinechannel--use_mock_oracle'] == true"
+          }
+        },
+        "condition-2": {
+          "componentRef": {
+            "name": "comp-condition-2"
+          },
+          "dependentTasks": [
+            "submit-batch-job-6"
+          ],
+          "inputs": {
+            "parameters": {
+              "pipelinechannel--use_mock_oracle": {
+                "componentInputParameter": "use_mock_oracle"
+              }
+            }
+          },
+          "taskInfo": {
+            "name": "Real Oracle"
+          },
+          "triggerPolicy": {
+            "condition": "inputs.parameter_values['pipelinechannel--use_mock_oracle'] == false"
+          }
+        },
+        "patch-spec": {
+          "cachingOptions": {
+            "enableCache": true
+          },
+          "componentRef": {
+            "name": "comp-patch-spec"
+          },
+          "inputs": {
+            "parameters": {
+              "base_gcs_path": {
+                "runtimeValue": {
+                  "constant": "/mnt/disks/gcs"
+                }
+              },
+              "loop_id": {
+                "componentInputParameter": "loop_id"
+              },
+              "mode": {
+                "runtimeValue": {
+                  "constant": "pocket2mol"
+                }
+              },
+              "spec_json_str": {
+                "runtimeValue": {
+                  "constant": "{\n    \"taskGroups\": [\n        {\n            \"taskCount\": 1,\n            \"parallelism\": 1,\n            \"taskSpec\": {\n                \"runnables\": [\n                    {\n                        \"container\": {\n                            \"imageUri\": \"us-central1-docker.pkg.dev/lifescience-project-469915/drug-discovery-containers/pocket2mol\",\n                            \"commands\": [\n                                \"/bin/bash\",\n                                \"-c\",\n                                \"export LD_LIBRARY_PATH=/usr/local/nvidia/lib64:/opt/conda/envs/Pocket2Mol/lib:$LD_LIBRARY_PATH && cp configs/sample_for_pdb.yml /tmp/run_config.yml && sed -i 's|./ckpt/pretrained_Pocket2Mol.pt|/mnt/disks/gcs/input/models/pretrained.pt|g' /tmp/run_config.yml && sed -i 's|num_samples: 100|num_samples: 100000|g' /tmp/run_config.yml && python sample_for_pdb.py --config /tmp/run_config.yml --pdb_path /mnt/disks/gcs/input/1aq1.pdb --center '0.517,27.062,8.972' --outdir /mnt/disks/gcs/output/generated\"\n                            ]\n                        }\n                    }\n                ],\n                \"computeResource\": {\n                    \"cpuMilli\": 4000,\n                    \"memoryMib\": 16384\n                },\n                \"volumes\": [\n                    {\n                        \"gcs\": {\n                            \"remotePath\": \"drug-discovery-mvp-input-data\"\n                        },\n                        \"mountPath\": \"/mnt/disks/gcs/input\"\n                    },\n                    {\n                        \"gcs\": {\n                            \"remotePath\": \"drug-discovery-mvp-docking-results\"\n                        },\n                        \"mountPath\": \"/mnt/disks/gcs/output\"\n                    }\n                ]\n            }\n        }\n    ],\n    \"allocationPolicy\": {\n        \"instances\": [\n            {\n                \"installGpuDrivers\": true,\n                \"policy\": {\n                    \"provisioningModel\": \"SPOT\",\n                    \"machineType\": \"g2-standard-4\",\n                    \"accelerators\": [\n                        {\n                            \"type\": \"nvidia-l4\",\n                            \"count\": \"1\",\n                            \"installGpuDrivers\": true\n                        }\n                    ]\n                }\n            }\n        ]\n    },\n    \"logsPolicy\": {\n        \"destination\": \"CLOUD_LOGGING\"\n    }\n}"
+                }
+              }
+            }
+          },
+          "taskInfo": {
+            "name": "patch-spec"
+          }
+        },
+        "patch-spec-2": {
+          "cachingOptions": {
+            "enableCache": true
+          },
+          "componentRef": {
+            "name": "comp-patch-spec-2"
+          },
+          "inputs": {
+            "parameters": {
+              "base_gcs_path": {
+                "runtimeValue": {
+                  "constant": "/mnt/disks/gcs"
+                }
+              },
+              "loop_id": {
+                "componentInputParameter": "loop_id"
+              },
+              "mode": {
+                "runtimeValue": {
+                  "constant": "gnina"
+                }
+              },
+              "spec_json_str": {
+                "runtimeValue": {
+                  "constant": "{\n  \"taskGroups\": [\n    {\n      \"taskCount\": 1,\n      \"parallelism\": 1,\n      \"taskSpec\": {\n        \"runnables\": [\n          {\n            \"container\": {\n              \"imageUri\": \"us-central1-docker.pkg.dev/lifescience-project-469915/drug-discovery-containers/gnina\",\n              \"commands\": [\n                \"/bin/bash\",\n                \"-c\",\n                \"/usr/local/bin/run_gnina_docking.sh /mnt/disks/gcs/input/generated/molecules.csv /mnt/disks/gcs/input/1aki.pdb /mnt/disks/gcs/output/docking_results 0\"\n              ]\n            }\n          }\n        ],\n        \"computeResource\": {\n          \"cpuMilli\": 4000,\n          \"memoryMib\": 16384\n        },\n        \"volumes\": [\n          {\n            \"gcs\": {\n              \"remotePath\": \"drug-discovery-mvp-input-data\"\n            },\n            \"mountPath\": \"/mnt/disks/gcs/input\"\n          },\n          {\n            \"gcs\": {\n              \"remotePath\": \"drug-discovery-mvp-docking-results\"\n            },\n            \"mountPath\": \"/mnt/disks/gcs/output\"\n          },\n          {\n            \"gcs\": {\n              \"remotePath\": \"drug-discovery-mvp-input-data\"\n            },\n            \"mountPath\": \"/mnt/disks/gcs/data\"\n          }\n        ]\n      }\n    }\n  ],\n  \"allocationPolicy\": {\n    \"instances\": [\n      {\n        \"installGpuDrivers\": true,\n        \"policy\": {\n          \"provisioningModel\": \"SPOT\",\n          \"bootDisk\": {\n            \"sizeGb\": 100\n          },\n          \"machineType\": \"g2-standard-4\",\n          \"accelerators\": [\n            {\n              \"type\": \"nvidia-l4\",\n              \"count\": \"1\",\n              \"installGpuDrivers\": true\n            }\n          ]\n        }\n      }\n    ]\n  },\n  \"logsPolicy\": {\n    \"destination\": \"CLOUD_LOGGING\"\n  }\n}"
+                }
+              }
+            }
+          },
+          "taskInfo": {
+            "name": "patch-spec-2"
+          }
+        },
+        "patch-spec-3": {
+          "cachingOptions": {
+            "enableCache": true
+          },
+          "componentRef": {
+            "name": "comp-patch-spec-3"
+          },
+          "inputs": {
+            "parameters": {
+              "base_gcs_path": {
+                "runtimeValue": {
+                  "constant": "/mnt/disks/gcs"
+                }
+              },
+              "loop_id": {
+                "componentInputParameter": "loop_id"
+              },
+              "mode": {
+                "runtimeValue": {
+                  "constant": "txgemma"
+                }
+              },
+              "spec_json_str": {
+                "runtimeValue": {
+                  "constant": "{\n  \"taskGroups\": [\n    {\n      \"taskCount\": 1,\n      \"parallelism\": 1,\n      \"taskSpec\": {\n        \"runnables\": [\n          {\n            \"container\": {\n              \"imageUri\": \"us-central1-docker.pkg.dev/lifescience-project-469915/drug-discovery-containers/txgemma:v2\",\n              \"entrypoint\": \"/bin/bash\",\n              \"commands\": [\n                \"-c\",\n                \"export LD_LIBRARY_PATH=/usr/local/nvidia/lib64:/usr/local/cuda/lib64:$LD_LIBRARY_PATH && pip install transformers==4.42.4 && cp /mnt/disks/gcs/data/scripts/predict_batched.py /tmp/predict.py && python3 /tmp/predict.py --input-file /mnt/disks/gcs/input/run_config_1aq1.pdb_2025_11_20__02_39_24/SMILES.txt --output-file /mnt/disks/gcs/output/txgemma_results.csv\"\n              ]\n            }\n          }\n        ],\n        \"environment\": {\n          \"variables\": {\n            \"HF_TOKEN\": \"SECRET_PLACEHOLDER\"\n          }\n        },\n        \"computeResource\": {\n          \"cpuMilli\": 4000,\n          \"memoryMib\": 16384\n        },\n        \"volumes\": [\n          {\n            \"gcs\": {\n              \"remotePath\": \"drug-discovery-mvp-docking-results\"\n            },\n            \"mountPath\": \"/mnt/disks/gcs/input\"\n          },\n          {\n            \"gcs\": {\n              \"remotePath\": \"drug-discovery-mvp-docking-results\"\n            },\n            \"mountPath\": \"/mnt/disks/gcs/output\"\n          },\n          {\n            \"gcs\": {\n              \"remotePath\": \"drug-discovery-mvp-input-data\"\n            },\n            \"mountPath\": \"/mnt/disks/gcs/data\"\n          }\n        ]\n      }\n    }\n  ],\n  \"allocationPolicy\": {\n    \"instances\": [\n      {\n        \"installGpuDrivers\": true,\n        \"policy\": {\n          \"provisioningModel\": \"SPOT\",\n          \"bootDisk\": {\n            \"sizeGb\": 100\n          },\n          \"machineType\": \"g2-standard-24\",\n          \"accelerators\": [\n            {\n              \"type\": \"nvidia-l4\",\n              \"count\": \"2\",\n              \"installGpuDrivers\": true\n            }\n          ]\n        }\n      }\n    ]\n  },\n  \"logsPolicy\": {\n    \"destination\": \"CLOUD_LOGGING\"\n  }\n}"
+                }
+              }
+            }
+          },
+          "taskInfo": {
+            "name": "patch-spec-3"
+          }
+        },
+        "patch-spec-4": {
+          "cachingOptions": {
+            "enableCache": true
+          },
+          "componentRef": {
+            "name": "comp-patch-spec-4"
+          },
+          "inputs": {
+            "parameters": {
+              "base_gcs_path": {
+                "runtimeValue": {
+                  "constant": "/mnt/disks/gcs"
+                }
+              },
+              "loop_id": {
+                "componentInputParameter": "loop_id"
+              },
+              "mode": {
+                "runtimeValue": {
+                  "constant": "rdkit"
+                }
+              },
+              "spec_json_str": {
+                "runtimeValue": {
+                  "constant": "{\n    \"taskGroups\": [\n        {\n            \"taskCount\": 1,\n            \"parallelism\": 1,\n            \"taskSpec\": {\n                \"runnables\": [\n                    {\n                        \"container\": {\n                            \"imageUri\": \"us-central1-docker.pkg.dev/lifescience-project-469915/drug-discovery-containers/rdkit\",\n                            \"commands\": [\n                                \"python\",\n                                \"/app/score.py\",\n                                \"--input_csv\",\n                                \"/mnt/disks/gcs/input/docking_results.csv\",\n                                \"--output_csv\",\n                                \"/mnt/disks/gcs/output/rdkit_scores.csv\"\n                            ]\n                        }\n                    }\n                ],\n                \"computeResource\": {\n                    \"cpuMilli\": 1000,\n                    \"memoryMib\": 2048\n                },\n                \"volumes\": [\n                    {\n                        \"gcs\": {\n                            \"remotePath\": \"drug-discovery-mvp-docking-results\"\n                        },\n                        \"mountPath\": \"/mnt/disks/gcs/input\"\n                    },\n                    {\n                        \"gcs\": {\n                            \"remotePath\": \"drug-discovery-mvp-docking-results\"\n                        },\n                        \"mountPath\": \"/mnt/disks/gcs/output\"\n                    }\n                ]\n            }\n        }\n    ],\n    \"allocationPolicy\": {\n        \"instances\": [\n            {\n                \"policy\": {\n                    \"provisioningModel\": \"STANDARD\",\n                    \"machineType\": \"e2-standard-2\"\n                }\n            }\n        ]\n    },\n    \"logsPolicy\": {\n        \"destination\": \"CLOUD_LOGGING\"\n    }\n}"
+                }
+              }
+            }
+          },
+          "taskInfo": {
+            "name": "patch-spec-4"
+          }
+        },
+        "patch-spec-5": {
+          "cachingOptions": {
+            "enableCache": true
+          },
+          "componentRef": {
+            "name": "comp-patch-spec-5"
+          },
+          "inputs": {
+            "parameters": {
+              "base_gcs_path": {
+                "runtimeValue": {
+                  "constant": "/mnt/disks/gcs"
+                }
+              },
+              "loop_id": {
+                "componentInputParameter": "loop_id"
+              },
+              "mode": {
+                "runtimeValue": {
+                  "constant": "joiner"
+                }
+              },
+              "spec_json_str": {
+                "runtimeValue": {
+                  "constant": "{\n  \"taskGroups\": [\n    {\n      \"taskCount\": 1,\n      \"parallelism\": 1,\n      \"taskSpec\": {\n        \"runnables\": [\n          {\n            \"container\": {\n              \"imageUri\": \"us-central1-docker.pkg.dev/lifescience-project-469915/drug-discovery-containers/joiner:v1\",\n              \"entrypoint\": \"python\",\n              \"commands\": [\n                \"-u\",\n                \"/app/join_results.py\",\n                \"--smiles\",\n                \"/mnt/disks/gcs/input/v3_test_generated_4yhj/SMILES.txt\",\n                \"--rdkit\",\n                \"/mnt/disks/gcs/input/rdkit_scores.csv\",\n                \"--txgemma\",\n                \"/mnt/disks/gcs/input/txgemma_results_standalone.csv\",\n                \"--gnina\",\n                \"/mnt/disks/gcs/input/docking_results\",\n                \"--output\",\n                \"/mnt/disks/gcs/output/aggregated_results.csv\",\n                \"--batch_id\",\n                \"v3_test_4yhj\"\n              ],\n              \"volumes\": [\n                \"/mnt/disks/gcs/input:/mnt/disks/gcs/input:rw\",\n                \"/mnt/disks/gcs/output:/mnt/disks/gcs/output:rw\"\n              ]\n            }\n          }\n        ],\n        \"computeResource\": {\n          \"cpuMilli\": 2000,\n          \"memoryMib\": 4096\n        },\n        \"volumes\": [\n          {\n            \"gcs\": {\n              \"remotePath\": \"drug-discovery-mvp-docking-results\"\n            },\n            \"mountPath\": \"/mnt/disks/gcs/input\"\n          },\n          {\n            \"gcs\": {\n              \"remotePath\": \"drug-discovery-mvp-docking-results\"\n            },\n            \"mountPath\": \"/mnt/disks/gcs/output\"\n          }\n        ]\n      }\n    }\n  ],\n  \"allocationPolicy\": {\n    \"instances\": [\n      {\n        \"policy\": {\n          \"machineType\": \"n1-standard-2\",\n          \"provisioningModel\": \"STANDARD\"\n        }\n      }\n    ],\n    \"serviceAccount\": {\n      \"email\": \"1019380215650-compute@developer.gserviceaccount.com\",\n      \"scopes\": [\n        \"https://www.googleapis.com/auth/cloud-platform\"\n      ]\n    }\n  },\n  \"logsPolicy\": {\n    \"destination\": \"CLOUD_LOGGING\"\n  }\n}"
+                }
+              }
+            }
+          },
+          "taskInfo": {
+            "name": "patch-spec-5"
+          }
+        },
+        "patch-spec-6": {
+          "cachingOptions": {
+            "enableCache": true
+          },
+          "componentRef": {
+            "name": "comp-patch-spec-6"
+          },
+          "inputs": {
+            "parameters": {
+              "base_gcs_path": {
+                "runtimeValue": {
+                  "constant": "/mnt/disks/gcs"
+                }
+              },
+              "loop_id": {
+                "componentInputParameter": "loop_id"
+              },
+              "mode": {
+                "runtimeValue": {
+                  "constant": "selection"
+                }
+              },
+              "spec_json_str": {
+                "runtimeValue": {
+                  "constant": "{\n  \"taskGroups\": [\n    {\n      \"taskCount\": 1,\n      \"parallelism\": 1,\n      \"taskSpec\": {\n        \"runnables\": [\n          {\n            \"container\": {\n              \"imageUri\": \"us-central1-docker.pkg.dev/lifescience-project-469915/drug-discovery-containers/joiner:v1\",\n              \"entrypoint\": \"python\",\n              \"commands\": [\n                \"-u\",\n                \"/app/join_results.py\",\n                \"--smiles\",\n                \"/mnt/disks/gcs/input/v3_test_generated_4yhj/SMILES.txt\",\n                \"--rdkit\",\n                \"/mnt/disks/gcs/input/rdkit_scores.csv\",\n                \"--txgemma\",\n                \"/mnt/disks/gcs/input/txgemma_results_standalone.csv\",\n                \"--gnina\",\n                \"/mnt/disks/gcs/input/docking_results\",\n                \"--output\",\n                \"/mnt/disks/gcs/output/aggregated_results.csv\",\n                \"--batch_id\",\n                \"v3_test_4yhj\"\n              ],\n              \"volumes\": [\n                \"/mnt/disks/gcs/input:/mnt/disks/gcs/input:rw\",\n                \"/mnt/disks/gcs/output:/mnt/disks/gcs/output:rw\"\n              ]\n            }\n          }\n        ],\n        \"computeResource\": {\n          \"cpuMilli\": 2000,\n          \"memoryMib\": 4096\n        },\n        \"volumes\": [\n          {\n            \"gcs\": {\n              \"remotePath\": \"drug-discovery-mvp-docking-results\"\n            },\n            \"mountPath\": \"/mnt/disks/gcs/input\"\n          },\n          {\n            \"gcs\": {\n              \"remotePath\": \"drug-discovery-mvp-docking-results\"\n            },\n            \"mountPath\": \"/mnt/disks/gcs/output\"\n          }\n        ]\n      }\n    }\n  ],\n  \"allocationPolicy\": {\n    \"instances\": [\n      {\n        \"policy\": {\n          \"machineType\": \"n1-standard-2\",\n          \"provisioningModel\": \"STANDARD\"\n        }\n      }\n    ],\n    \"serviceAccount\": {\n      \"email\": \"1019380215650-compute@developer.gserviceaccount.com\",\n      \"scopes\": [\n        \"https://www.googleapis.com/auth/cloud-platform\"\n      ]\n    }\n  },\n  \"logsPolicy\": {\n    \"destination\": \"CLOUD_LOGGING\"\n  }\n}"
+                }
+              }
+            }
+          },
+          "taskInfo": {
+            "name": "patch-spec-6"
+          }
+        },
+        "submit-batch-job": {
+          "cachingOptions": {
+            "enableCache": true
+          },
+          "componentRef": {
+            "name": "comp-submit-batch-job"
+          },
+          "dependentTasks": [
+            "patch-spec"
+          ],
+          "inputs": {
+            "parameters": {
+              "job_spec": {
+                "taskOutputParameter": {
+                  "outputParameterKey": "Output",
+                  "producerTask": "patch-spec"
+                }
+              },
+              "location": {
+                "runtimeValue": {
+                  "constant": "us-central1"
+                }
+              },
+              "project": {
+                "runtimeValue": {
+                  "constant": "lifescience-project-469915"
+                }
+              }
+            }
+          },
+          "taskInfo": {
+            "name": "1. Generation"
+          }
+        },
+        "submit-batch-job-2": {
+          "cachingOptions": {
+            "enableCache": true
+          },
+          "componentRef": {
+            "name": "comp-submit-batch-job-2"
+          },
+          "dependentTasks": [
+            "patch-spec-2",
+            "submit-batch-job"
+          ],
+          "inputs": {
+            "parameters": {
+              "job_spec": {
+                "taskOutputParameter": {
+                  "outputParameterKey": "Output",
+                  "producerTask": "patch-spec-2"
+                }
+              },
+              "location": {
+                "runtimeValue": {
+                  "constant": "us-central1"
+                }
+              },
+              "project": {
+                "runtimeValue": {
+                  "constant": "lifescience-project-469915"
+                }
+              }
+            }
+          },
+          "taskInfo": {
+            "name": "2a. Filter (Gnina)"
+          }
+        },
+        "submit-batch-job-3": {
+          "cachingOptions": {
+            "enableCache": true
+          },
+          "componentRef": {
+            "name": "comp-submit-batch-job-3"
+          },
+          "dependentTasks": [
+            "patch-spec-3",
+            "submit-batch-job"
+          ],
+          "inputs": {
+            "parameters": {
+              "job_spec": {
+                "taskOutputParameter": {
+                  "outputParameterKey": "Output",
+                  "producerTask": "patch-spec-3"
+                }
+              },
+              "location": {
+                "runtimeValue": {
+                  "constant": "us-central1"
+                }
+              },
+              "project": {
+                "runtimeValue": {
+                  "constant": "lifescience-project-469915"
+                }
+              }
+            }
+          },
+          "taskInfo": {
+            "name": "2b. Filter (TxGemma)"
+          }
+        },
+        "submit-batch-job-4": {
+          "cachingOptions": {
+            "enableCache": true
+          },
+          "componentRef": {
+            "name": "comp-submit-batch-job-4"
+          },
+          "dependentTasks": [
+            "patch-spec-4",
+            "submit-batch-job"
+          ],
+          "inputs": {
+            "parameters": {
+              "job_spec": {
+                "taskOutputParameter": {
+                  "outputParameterKey": "Output",
+                  "producerTask": "patch-spec-4"
+                }
+              },
+              "location": {
+                "runtimeValue": {
+                  "constant": "us-central1"
+                }
+              },
+              "project": {
+                "runtimeValue": {
+                  "constant": "lifescience-project-469915"
+                }
+              }
+            }
+          },
+          "taskInfo": {
+            "name": "2c. Filter (RDKit)"
+          }
+        },
+        "submit-batch-job-5": {
+          "cachingOptions": {
+            "enableCache": true
+          },
+          "componentRef": {
+            "name": "comp-submit-batch-job-5"
+          },
+          "dependentTasks": [
+            "patch-spec-5",
+            "submit-batch-job-2",
+            "submit-batch-job-3",
+            "submit-batch-job-4"
+          ],
+          "inputs": {
+            "parameters": {
+              "job_spec": {
+                "taskOutputParameter": {
+                  "outputParameterKey": "Output",
+                  "producerTask": "patch-spec-5"
+                }
+              },
+              "location": {
+                "runtimeValue": {
+                  "constant": "us-central1"
+                }
+              },
+              "project": {
+                "runtimeValue": {
+                  "constant": "lifescience-project-469915"
+                }
+              }
+            }
+          },
+          "taskInfo": {
+            "name": "3. Data Joiner"
+          }
+        },
+        "submit-batch-job-6": {
+          "cachingOptions": {
+            "enableCache": true
+          },
+          "componentRef": {
+            "name": "comp-submit-batch-job-6"
+          },
+          "dependentTasks": [
+            "patch-spec-6",
+            "submit-batch-job-5"
+          ],
+          "inputs": {
+            "parameters": {
+              "job_spec": {
+                "taskOutputParameter": {
+                  "outputParameterKey": "Output",
+                  "producerTask": "patch-spec-6"
+                }
+              },
+              "location": {
+                "runtimeValue": {
+                  "constant": "us-central1"
+                }
+              },
+              "project": {
+                "runtimeValue": {
+                  "constant": "lifescience-project-469915"
+                }
+              }
+            }
+          },
+          "taskInfo": {
+            "name": "4. Selection"
+          }
+        }
+      }
+    },
+    "inputDefinitions": {
+      "parameters": {
+        "loop_id": {
+          "defaultValue": "loop_v5_test",
+          "isOptional": true,
+          "parameterType": "STRING"
+        },
+        "use_mock_oracle": {
+          "defaultValue": true,
+          "isOptional": true,
+          "parameterType": "BOOLEAN"
+        }
+      }
+    }
+  },
+  "schemaVersion": "2.1.0",
+  "sdkVersion": "kfp-2.15.2"
+}

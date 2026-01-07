@@ -1,0 +1,25 @@
+{
+    "enableWebAccess": true,
+    "workerPoolSpecs": [
+        {
+            "machineSpec": {
+                "machineType": "a2-highgpu-1g",
+                "acceleratorType": "NVIDIA_TESLA_A100",
+                "acceleratorCount": 1
+            },
+            "replicaCount": "1",
+            "diskSpec": {
+                "bootDiskType": "pd-ssd",
+                "bootDiskSizeGb": 100
+            },
+            "containerSpec": {
+                "imageUri": "us-central1-docker.pkg.dev/gcda-apac-sc/drug-discovery-containers/pocket2mol-retrain:v2",
+                "command": [
+                    "/bin/bash",
+                    "-c",
+                    "export LD_LIBRARY_PATH=/usr/local/nvidia/lib64:$LD_LIBRARY_PATH && /opt/conda/envs/Pocket2Mol/bin/python -c \"from google.cloud import storage; storage.Client().bucket('ryanymt').blob('input/scripts/run_finetune_v8.py').download_to_filename('run_finetune_v8.py')\" && /opt/conda/envs/Pocket2Mol/bin/python run_finetune_v8.py"
+                ]
+            }
+        }
+    ]
+}

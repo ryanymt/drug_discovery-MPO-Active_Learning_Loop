@@ -1,0 +1,62 @@
+{
+    "name": "projects/gcda-apac-sc/locations/us-central1/jobs/prod-rdkit-cycle2",
+    "taskGroups": [
+        {
+            "taskSpec": {
+                "runnables": [
+                    {
+                        "container": {
+                            "imageUri": "us-central1-docker.pkg.dev/gcda-apac-sc/drug-discovery-containers/rdkit:latest",
+                            "entrypoint": "/bin/bash",
+                            "commands": [
+                                "-c",
+                                "pip install pandas && head -n 1 /mnt/disks/gcs/input/screening/cycle2_10k.csv > /tmp/shard.csv && awk -F, 'NR>1 && (NR-2) % 10 == '$BATCH_TASK_INDEX' {print $0}' /mnt/disks/gcs/input/screening/cycle2_10k.csv >> /tmp/shard.csv && cp /mnt/disks/gcs/input/scripts/run_rdkit_simple.py /tmp/run.py && python3 /tmp/run.py --input_csv /tmp/shard.csv --output_csv /mnt/disks/gcs/output/cycle2/rdkit/shard_${BATCH_TASK_INDEX}.csv"
+                            ],
+                            "volumes": [
+                                "/mnt/disks/gcs/output:/mnt/disks/gcs/output:rw",
+                                "/mnt/disks/gcs/input:/mnt/disks/gcs/input:rw"
+                            ]
+                        }
+                    }
+                ],
+                "computeResource": {
+                    "cpuMilli": "2000",
+                    "memoryMib": "4096"
+                },
+                "maxRetryCount": 3,
+                "volumes": [
+                    {
+                        "gcs": {
+                            "remotePath": "ryanymt/output/"
+                        },
+                        "mountPath": "/mnt/disks/gcs/output"
+                    },
+                    {
+                        "gcs": {
+                            "remotePath": "ryanymt/input/"
+                        },
+                        "mountPath": "/mnt/disks/gcs/input"
+                    }
+                ]
+            },
+            "taskCount": "10",
+            "parallelism": "10"
+        }
+    ],
+    "allocationPolicy": {
+        "instances": [
+            {
+                "policy": {
+                    "provisioningModel": "SPOT",
+                    "machineType": "e2-standard-4",
+                    "bootDisk": {
+                        "sizeGb": "30"
+                    }
+                }
+            }
+        ]
+    },
+    "logsPolicy": {
+        "destination": "CLOUD_LOGGING"
+    }
+}

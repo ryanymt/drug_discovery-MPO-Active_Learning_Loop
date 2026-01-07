@@ -1,7 +1,5 @@
 # Strategy: Mitigating Mode Collapse in Generative Drug Design
 
-**Note:** This document is a work in progress and is subject to change. This is just a hypothesis as of the time of writing.   
-
 ## 1. The Problem: "The One-Trick Pony"
 Active Learning loops naturally gravitate towards specific high-performing local minima. Generative models (like Pocket2Mol) are mathematically incentivized to find the *easiest* pattern that satisfies the reward function and repeat it. This leads to **Mode Collapse**, where the model generates thousands of variations of a single scaffold.
 

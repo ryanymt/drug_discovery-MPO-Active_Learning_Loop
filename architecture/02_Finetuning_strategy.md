@@ -1,7 +1,7 @@
 # Pocket2Mol Fine-Tuning Strategy
 
 ## Context
-In the Active Learning loop (`01-prod-pipeline.json`), the aim is to improve the quality of generated molecules over successive cycles. The "Generator" (Pocket2Mol) must learn from the high-scoring candidates identified by the Oracle (FEP).
+In the Active Learning loop, the aim is to improve the quality of generated molecules over successive cycles. The "Generator" (Pocket2Mol) must learn from the high-scoring candidates identified by the Oracle (FEP / MM-GBSA).
 
 ## Approaches Considered
 
@@ -12,7 +12,7 @@ Directly optimize the generator using the Oracle scores as a reward function (e.
     *   **Sparse Rewards**: High-scoring molecules are rare events.
     *   **Instability**: RL on 3D graph generation is notoriously unstable and hard to tune.
     *   **Complexity**: Requires rewriting the Pocket2Mol loss function and training loop significantly.
-    *   **Cost**: Requires online interaction with the Oracle during training (extremely expensive with FEP).
+    *   **Cost**: Requires online interaction with the Oracle during training (extremely expensive with FEP / MM-GBSA).
 
 ### Option B: Conditional Generation (Control Codes)
 Train a single model conditioned on property tokens (e.g., `<LogP:High>`, `<Binding:-10>`).
@@ -29,11 +29,11 @@ Retrain the model weights on a small, curated dataset of "Elite" candidates ("Hi
     *   **Offline**: Does not require Oracle interaction during training.
 *   **Downside**:
     *   **Catastrophic Forgetting**: The model may "forget" general chemistry rules (valency, ring strain) if trained too long on a small dataset.
-    *   **Mode Collapse**: The model may converge to generating only a few specific scaffolds found in the elite set.
+    *   **Mode Collapse**: The model may converge to generating only a few specific scaffolds found in the elite set. Experience replay has to be implemented to minimise this. 
 
 ## Comparison Table
 
-| Feature | RL | Conditional | Fine-Tuning (Ours) |
+| Feature | RL | Conditional | Fine-Tuning (**) |
 | :--- | :--- | :--- | :--- |
 | **Implementation Effort** | High | High | **Low** |
 | **Stability** | Low | Medium | **High** |
@@ -41,20 +41,25 @@ Retrain the model weights on a small, curated dataset of "Elite" candidates ("Hi
 | **Risk** | Non-convergence | Poor Generalization | Mode Collapse |
 
 ## Justification for Selection
-For the MLOps implementation (Phase 7), **Option C (Iterative Fine-Tuning)** was selected for the following reasons:
+## Production Implementation (Cycle 2 Status)
 
-1.  **MVP Pragmatism**: The existing `run_finetune_v7.py` script can be reused without modifying the core Pocket2Mol research code.
-2.  **Infrastructure Fit**: It maps cleanly to a Batch Pipeline workflow:
-    *   `Step N`: Generate Data -> `Step N+1`: Train on Data.
-3.  **Risk Management**: "Mode Collapse" is manageable via the **Diversity Filter** in the Selection Step (80% Exploitation / 20% Exploration). Randomness is explicitly injected to prevent the dataset from becoming too narrow.
+We successfully implemented **Option C** with specific optimizations for scale ("Weighted Retraining").
 
-## Implementation Details (The "SMILES-to-3D" Bridge)
-A specific challenge for Pocket2Mol is that it is a **3D Generative Model**—it requires 3D SDF structures as training labels, not just SMILES strings.
+### 1. Data Preparation: The "Retrieval" Strategy
+Unlike the initial plan to "Redock" SMILES (which causes coordinate drift), we implemented a **Retrieval Strategy**.
+*   **Logic**: Since Pocket2Mol is a 3D generative model, it generated the original specific 3D conformer that yielded the high score.
+*   **Mechanism**: We trace the `molecule_hash` back to the original `shard_ID` and `index` in the Generation output (`gs://ryanymt/output/generated/`) and retrieve the *exact* original SDF.
+*   **Start**: `select_elite.py` (BigQuery -> CSV).
+*   **Bridge**: `prep_p2m_data.py` (CSV -> Tarball of SDFs).
 
-**The Pipeline Solution:**
-1.  **Selection**: Pick Top N SMILES (`select_elite.py`).
-2.  **Redocking**: Use Gnina/RDKit to Generate 3D Poses (`redock_batch.py`).
-    *   *Why*: The *predicted* 3D pose of a high-affinity SMILES is treated as the "Ground Truth 3D Structure" for the generator to learn.
-3.  **Training**: Run Fine-Tuning on these redocked SDFs (`finetune_launcher.py`).
+### 2. Training Infrastructure: A100 Acceleration
+We migrated from P100s to **NVIDIA A100 GPUs** for the retraining phase.
+*   **Why**: The fine-tuning dataset (10k molecules) is small, but the graph processing (PyG) is data-intensive.
+*   **Optimization**: We implemented **Multiprocessing LMDB Generation** to speed up data loading from 60 mins -> 4 mins.
+*   **Config**: `batch_size: 4`, `max_iters: 25000` (10 Epochs).
 
-This "Self-Training" loop allows the 2D-to-3D conversion to happen automatically within the pipeline.
+### 3. Diversity Controls
+To mitigate Mode Collapse, we employ a "Robust Recipe" for the training set:
+*   **80% Centroids**: Representative high-scorers from structural clusters.
+*   **20% Exploration**: Random diverse samples.
+*   **Result**: The fine-tuned model achieved a **99.9% Hit Rate** in Cycle 2, proving the strategy works.

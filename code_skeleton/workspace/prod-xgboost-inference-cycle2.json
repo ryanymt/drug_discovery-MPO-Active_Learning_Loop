@@ -1,0 +1,69 @@
+{
+    "name": "projects/gcda-apac-sc/locations/us-central1/jobs/prod-xgboost-inference-cycle2",
+    "taskGroups": [
+        {
+            "taskSpec": {
+                "runnables": [
+                    {
+                        "container": {
+                            "imageUri": "us-central1-docker.pkg.dev/gcda-apac-sc/drug-discovery-containers/rdkit:latest",
+                            "entrypoint": "/bin/bash",
+                            "commands": [
+                                "-c",
+                                "pip install xgboost scikit-learn pandas joblib && head -n 1 /mnt/disks/gcs/input/screening/cycle2_10k.csv > /tmp/shard.csv && awk -F, 'NR>1 && (NR-2) % 10 == '$BATCH_TASK_INDEX' {print $0}' /mnt/disks/gcs/input/screening/cycle2_10k.csv >> /tmp/shard.csv && cp /mnt/disks/gcs/input/scripts/predict_xgboost.py . && python3 predict_xgboost.py --input_csv /tmp/shard.csv --model /mnt/disks/gcs/models/xgboost_proxy.joblib --output_csv /mnt/disks/gcs/output/cycle2/xgboost/shard_${BATCH_TASK_INDEX}.csv"
+                            ],
+                            "volumes": [
+                                "/mnt/disks/gcs/input:/mnt/disks/gcs/input:rw",
+                                "/mnt/disks/gcs/output:/mnt/disks/gcs/output:rw",
+                                "/mnt/disks/gcs/models:/mnt/disks/gcs/models:rw"
+                            ]
+                        }
+                    }
+                ],
+                "computeResource": {
+                    "cpuMilli": "4000",
+                    "memoryMib": "8192"
+                },
+                "maxRetryCount": 3,
+                "volumes": [
+                    {
+                        "gcs": {
+                            "remotePath": "ryanymt/input/"
+                        },
+                        "mountPath": "/mnt/disks/gcs/input"
+                    },
+                    {
+                        "gcs": {
+                            "remotePath": "ryanymt/output/"
+                        },
+                        "mountPath": "/mnt/disks/gcs/output"
+                    },
+                    {
+                        "gcs": {
+                            "remotePath": "ryanymt/models/"
+                        },
+                        "mountPath": "/mnt/disks/gcs/models"
+                    }
+                ]
+            },
+            "taskCount": "10",
+            "parallelism": "10"
+        }
+    ],
+    "allocationPolicy": {
+        "instances": [
+            {
+                "policy": {
+                    "provisioningModel": "SPOT",
+                    "machineType": "e2-standard-4",
+                    "bootDisk": {
+                        "sizeGb": "30"
+                    }
+                }
+            }
+        ]
+    },
+    "logsPolicy": {
+        "destination": "CLOUD_LOGGING"
+    }
+}

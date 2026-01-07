@@ -1,0 +1,62 @@
+{
+    "taskGroups": [
+        {
+            "taskSpec": {
+                "runnables": [
+                    {
+                        "container": {
+                            "imageUri": "us-central1-docker.pkg.dev/gcda-apac-sc/drug-discovery-containers/rdkit:latest",
+                            "entrypoint": "/bin/bash",
+                            "commands": [
+                                "-c",
+                                "mkdir -p /mnt/disks/gcs/output/elite && pip install 'numpy<2' pandas gcsfs --quiet && cp /mnt/disks/gcs/input/scripts/select_elite_candidates.py . && python3 select_elite_candidates.py --input /mnt/disks/gcs/input/elite/pool.csv --output /mnt/disks/gcs/output/elite/elite_10k.csv"
+                            ],
+                            "volumes": [
+                                "/mnt/disks/gcs/input:/mnt/disks/gcs/input:rw",
+                                "/mnt/disks/gcs/output:/mnt/disks/gcs/output:rw"
+                            ]
+                        }
+                    }
+                ],
+                "computeResource": {
+                    "cpuMilli": "4000",
+                    "memoryMib": "16000"
+                },
+                "maxRetryCount": 1,
+                "maxRunDuration": "3600s",
+                "volumes": [
+                    {
+                        "gcs": {
+                            "remotePath": "ryanymt/input/"
+                        },
+                        "mountPath": "/mnt/disks/gcs/input"
+                    },
+                    {
+                        "gcs": {
+                            "remotePath": "ryanymt/output/"
+                        },
+                        "mountPath": "/mnt/disks/gcs/output"
+                    }
+                ]
+            },
+            "taskCount": 1,
+            "parallelism": 1
+        }
+    ],
+    "allocationPolicy": {
+        "instances": [
+            {
+                "policy": {
+                    "machineType": "e2-standard-4",
+                    "provisioningModel": "STANDARD"
+                }
+            }
+        ]
+    },
+    "labels": {
+        "batch-job-id": "elite-selection-job-v6"
+    },
+    "logsPolicy": {
+        "destination": "CLOUD_LOGGING"
+    }
+}

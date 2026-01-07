@@ -1,0 +1,75 @@
+{
+    "taskGroups": [
+        {
+            "taskCount": 10,
+            "parallelism": 10,
+            "taskSpec": {
+                "maxRetryCount": 3,
+                "lifecyclePolicies": [
+                    {
+                        "action": "RETRY_TASK",
+                        "actionCondition": {
+                            "exitCodes": [
+                                50001,
+                                50002,
+                                50003,
+                                50004
+                            ]
+                        }
+                    }
+                ],
+                "runnables": [
+                    {
+                        "container": {
+                            "imageUri": "us-central1-docker.pkg.dev/gcda-apac-sc/drug-discovery-containers/pocket2mol:v3",
+                            "commands": [
+                                "/bin/bash",
+                                "-c",
+                                "source /opt/conda/etc/profile.d/conda.sh && conda activate Pocket2Mol && export LD_LIBRARY_PATH=/usr/local/nvidia/lib64:/opt/conda/envs/Pocket2Mol/lib:$LD_LIBRARY_PATH && cp configs/sample_for_pdb.yml /tmp/run_config.yml && sed -i 's|./ckpt/pretrained_Pocket2Mol.pt|/mnt/disks/gcs/output/active_learning/cycle2_model/pocket2mol-v2.pt|g' /tmp/run_config.yml && sed -i \"s|num_samples: 100|num_samples: 1000|g\" /tmp/run_config.yml && sed -i \"s|seed: 2020|seed: $((BATCH_TASK_INDEX + 3000))|g\" /tmp/run_config.yml && python sample_for_pdb.py --config /tmp/run_config.yml --outdir /mnt/disks/gcs/output/generated_cycle2/shard_${BATCH_TASK_INDEX} --pdb_path /mnt/disks/gcs/input/4yhj.pdb --rejection_threshold -5.0"
+                            ]
+                        }
+                    }
+                ],
+                "computeResource": {
+                    "cpuMilli": 4000,
+                    "memoryMib": 16384
+                },
+                "volumes": [
+                    {
+                        "gcs": {
+                            "remotePath": "ryanymt/input"
+                        },
+                        "mountPath": "/mnt/disks/gcs/input"
+                    },
+                    {
+                        "gcs": {
+                            "remotePath": "ryanymt/output"
+                        },
+                        "mountPath": "/mnt/disks/gcs/output"
+                    }
+                ]
+            }
+        }
+    ],
+    "allocationPolicy": {
+        "instances": [
+            {
+                "installGpuDrivers": true,
+                "policy": {
+                    "provisioningModel": "SPOT",
+                    "machineType": "g2-standard-4",
+                    "accelerators": [
+                        {
+                            "type": "nvidia-l4",
+                            "count": "1",
+                            "installGpuDrivers": true
+                        }
+                    ]
+                }
+            }
+        ]
+    },
+    "logsPolicy": {
+        "destination": "CLOUD_LOGGING"
+    }
+}

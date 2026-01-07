@@ -1,0 +1,80 @@
+{
+    "name": "projects/gcda-apac-sc/locations/us-central1/jobs/prod-txgemma-100k",
+    "taskGroups": [
+        {
+            "taskSpec": {
+                "runnables": [
+                    {
+                        "container": {
+                            "imageUri": "us-central1-docker.pkg.dev/gcda-apac-sc/drug-discovery-containers/txgemma:v2",
+                            "entrypoint": "/bin/bash",
+                            "commands": [
+                                "-c",
+                                "export LD_LIBRARY_PATH=/usr/local/nvidia/lib64:/usr/local/cuda/lib64:$LD_LIBRARY_PATH && pip install transformers==4.42.4 && cp /mnt/disks/gcs/input/scripts/predict_batched.py /tmp/predict.py && awk -F, 'NR>1 && (NR-2) % 100 == '$BATCH_TASK_INDEX' {print $2}' /mnt/disks/gcs/output/consolidated/manifest.csv > /tmp/smiles.txt && python3 /tmp/predict.py --input-file /tmp/smiles.txt --output-file /mnt/disks/gcs/output/prod_100k/txgemma/shard_${BATCH_TASK_INDEX}.csv"
+                            ],
+                            "volumes": [
+                                "/mnt/disks/gcs/output:/mnt/disks/gcs/output:rw",
+                                "/mnt/disks/gcs/input:/mnt/disks/gcs/input:rw"
+                            ]
+                        }
+                    },
+                    {
+                        "script": {
+                            "text": "echo \"Task ${BATCH_TASK_INDEX} completed.\""
+                        }
+                    }
+                ],
+                "computeResource": {
+                    "cpuMilli": "4000",
+                    "memoryMib": "16384"
+                },
+                "maxRetryCount": 3,
+                "environment": {
+                    "variables": {
+                        "HF_TOKEN": "SECRET_PLACEHOLDER"
+                    }
+                },
+                "volumes": [
+                    {
+                        "gcs": {
+                            "remotePath": "ryanymt/output/"
+                        },
+                        "mountPath": "/mnt/disks/gcs/output"
+                    },
+                    {
+                        "gcs": {
+                            "remotePath": "ryanymt/input/"
+                        },
+                        "mountPath": "/mnt/disks/gcs/input"
+                    }
+                ]
+            },
+            "taskCount": "100",
+            "parallelism": "100"
+        }
+    ],
+    "allocationPolicy": {
+        "instances": [
+            {
+                "installGpuDrivers": true,
+                "policy": {
+                    "provisioningModel": "SPOT",
+                    "machineType": "g2-standard-4",
+                    "accelerators": [
+                        {
+                            "type": "nvidia-l4",
+                            "count": "1",
+                            "installGpuDrivers": true
+                        }
+                    ],
+                    "bootDisk": {
+                        "sizeGb": "100"
+                    }
+                }
+            }
+        ]
+    },
+    "logsPolicy": {
+        "destination": "CLOUD_LOGGING"
+    }
+}

@@ -1,6 +1,6 @@
 # Future Roadmap: Advancing the Architecture (Research Integration)
 
-Based on a comprehensive review of the current state of Deep Learning in Drug Discovery (referencing *papers-for-molecular-design-using-DL*), three high-impact integrations have been identified to evolve the platform from "MVP" to "State of the Art".
+Based on a comprehensive review of the current state of Deep Learning in Drug Discovery (referencing *papers-for-molecular-design-using-DL*), we have identified three high-impact integrations to evolve the platform from "MVP" to "State of the Art".
 
 ## 1. Upgrade the Generator: Diffusion Models
 **Current:** Pocket2Mol (Autoregressive GNN).
@@ -14,7 +14,7 @@ Based on a comprehensive review of the current state of Deep Learning in Drug Di
 **Current:** XGBoost on 2D Morgan Fingerprints.
 **Upgrade:** **Uni-Mol** (3D Molecular Transformers).
 
-*   **The Logic:** The current pipeline generates 3D molecules, but the "Critic" (Proxy Model) flattens them into 2D fingerprints to predict scores. This discards critical shape and electrostatic information.
+*   **The Logic:** Our current pipeline generates 3D molecules, but the "Critic" (Proxy Model) flattens them into 2D fingerprints to predict scores. This discards critical shape and electrostatic information.
 *   **Impact:** By using Uni-Mol to generate **3D Embeddings** of the protein-ligand complex, the Proxy Model can "see" the fit, drastically improving the correlation between Predicted $\Delta G$ and Oracle $\Delta G$.
 *   **Integration:** Replace `rdkit.GetMorganFingerprint` in the Training Component with the Uni-Mol encoder.
 
@@ -34,3 +34,4 @@ Based on a comprehensive review of the current state of Deep Learning in Drug Di
 | :--- | :--- | :--- | :--- |
 | **Phase 4 (Next)** | Critic | **Uni-Mol** | Fix the "2D blindspot" in the 3D generation loop. |
 | **Phase 5** | Generator | **TargetDiff** | benchmark Diffusion vs Autoregressive generation. |
+| **Phase 6** | Oracle | **MM-GBSA** | Replace Mock Oracle with physics-based "Light Oracle" (GROMACS). |

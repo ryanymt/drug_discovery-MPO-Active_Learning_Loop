@@ -1,0 +1,295 @@
+{
+  "components": {
+    "comp-submit-batch-job": {
+      "executorLabel": "exec-submit-batch-job",
+      "inputDefinitions": {
+        "parameters": {
+          "job_spec": {
+            "description": "The entire Batch job specification in JSON format as a string.",
+            "parameterType": "STRING"
+          },
+          "location": {
+            "description": "The Google Cloud region for the job.",
+            "parameterType": "STRING"
+          },
+          "project": {
+            "description": "The Google Cloud project ID.",
+            "parameterType": "STRING"
+          }
+        }
+      }
+    },
+    "comp-submit-batch-job-2": {
+      "executorLabel": "exec-submit-batch-job-2",
+      "inputDefinitions": {
+        "parameters": {
+          "job_spec": {
+            "description": "The entire Batch job specification in JSON format as a string.",
+            "parameterType": "STRING"
+          },
+          "location": {
+            "description": "The Google Cloud region for the job.",
+            "parameterType": "STRING"
+          },
+          "project": {
+            "description": "The Google Cloud project ID.",
+            "parameterType": "STRING"
+          }
+        }
+      }
+    },
+    "comp-submit-batch-job-3": {
+      "executorLabel": "exec-submit-batch-job-3",
+      "inputDefinitions": {
+        "parameters": {
+          "job_spec": {
+            "description": "The entire Batch job specification in JSON format as a string.",
+            "parameterType": "STRING"
+          },
+          "location": {
+            "description": "The Google Cloud region for the job.",
+            "parameterType": "STRING"
+          },
+          "project": {
+            "description": "The Google Cloud project ID.",
+            "parameterType": "STRING"
+          }
+        }
+      }
+    },
+    "comp-submit-batch-job-4": {
+      "executorLabel": "exec-submit-batch-job-4",
+      "inputDefinitions": {
+        "parameters": {
+          "job_spec": {
+            "description": "The entire Batch job specification in JSON format as a string.",
+            "parameterType": "STRING"
+          },
+          "location": {
+            "description": "The Google Cloud region for the job.",
+            "parameterType": "STRING"
+          },
+          "project": {
+            "description": "The Google Cloud project ID.",
+            "parameterType": "STRING"
+          }
+        }
+      }
+    }
+  },
+  "deploymentSpec": {
+    "executors": {
+      "exec-submit-batch-job": {
+        "container": {
+          "args": [
+            "{{$.inputs.parameters['project']}}",
+            "{{$.inputs.parameters['location']}}",
+            "{{$.inputs.parameters['job_spec']}}"
+          ],
+          "command": [
+            "sh",
+            "-c",
+            "\n            set -e -x\n\n            # Create a temporary file for the job spec\n            JOB_SPEC_FILE=$(mktemp)\n            echo \"$2\" > \"$JOB_SPEC_FILE\"\n\n            # Authenticate using the environment's service account\n            gcloud auth application-default print-access-token > /tmp/token\n            export CLOUDSDK_AUTH_ACCESS_TOKEN=$(cat /tmp/token)\n\n            # --- CORRECTED AND ROBUST JOB NAME ---\n            # This command creates a short, random, alphanumeric string that is safe for job names.\n            RANDOM_SUFFIX=$(head /dev/urandom | tr -dc a-z0-9 | head -c 8)\n            JOB_NAME=\"pipeline-job-$(date +%s)-${RANDOM_SUFFIX}\"\n            echo \"Submitting Batch job: ${JOB_NAME}\"\n\n            # Submit the job using the correct '--config' flag\n            gcloud beta batch jobs submit ${JOB_NAME} \\\n                --project=\"$0\" \\\n                --location=\"$1\" \\\n                --config=\"$JOB_SPEC_FILE\"\n\n            echo \"Job submitted. Now polling for completion...\"\n\n            # Loop until the job is no longer in a 'RUNNING' or 'QUEUED' state.\n            while true; do\n                # Get the job's state.\n                JOB_STATE=$(gcloud beta batch jobs describe ${JOB_NAME} \\\n                    --project=\"$0\" \\\n                    --location=\"$1\" \\\n                    --format=\"value(status.state)\")\n\n                echo \"Current job state: ${JOB_STATE}\"\n\n                if [ \"${JOB_STATE}\" = \"SUCCEEDED\" ]; then\n                    echo \"Job ${JOB_NAME} succeeded.\"\n                    exit 0\n                elif [ \"${JOB_STATE}\" = \"FAILED\" ]; then\n                    echo \"Job ${JOB_NAME} failed.\"\n                    exit 1\n                elif [ \"${JOB_STATE}\" = \"DELETED\" ]; then\n                    echo \"Job ${JOB_NAME} was deleted.\"\n                    exit 1\n                fi\n\n                # Wait for 30 seconds before checking again\n                sleep 30\n            done\n            "
+          ],
+          "image": "gcr.io/google.com/cloudsdktool/cloud-sdk:latest"
+        }
+      },
+      "exec-submit-batch-job-2": {
+        "container": {
+          "args": [
+            "{{$.inputs.parameters['project']}}",
+            "{{$.inputs.parameters['location']}}",
+            "{{$.inputs.parameters['job_spec']}}"
+          ],
+          "command": [
+            "sh",
+            "-c",
+            "\n            set -e -x\n\n            # Create a temporary file for the job spec\n            JOB_SPEC_FILE=$(mktemp)\n            echo \"$2\" > \"$JOB_SPEC_FILE\"\n\n            # Authenticate using the environment's service account\n            gcloud auth application-default print-access-token > /tmp/token\n            export CLOUDSDK_AUTH_ACCESS_TOKEN=$(cat /tmp/token)\n\n            # --- CORRECTED AND ROBUST JOB NAME ---\n            # This command creates a short, random, alphanumeric string that is safe for job names.\n            RANDOM_SUFFIX=$(head /dev/urandom | tr -dc a-z0-9 | head -c 8)\n            JOB_NAME=\"pipeline-job-$(date +%s)-${RANDOM_SUFFIX}\"\n            echo \"Submitting Batch job: ${JOB_NAME}\"\n\n            # Submit the job using the correct '--config' flag\n            gcloud beta batch jobs submit ${JOB_NAME} \\\n                --project=\"$0\" \\\n                --location=\"$1\" \\\n                --config=\"$JOB_SPEC_FILE\"\n\n            echo \"Job submitted. Now polling for completion...\"\n\n            # Loop until the job is no longer in a 'RUNNING' or 'QUEUED' state.\n            while true; do\n                # Get the job's state.\n                JOB_STATE=$(gcloud beta batch jobs describe ${JOB_NAME} \\\n                    --project=\"$0\" \\\n                    --location=\"$1\" \\\n                    --format=\"value(status.state)\")\n\n                echo \"Current job state: ${JOB_STATE}\"\n\n                if [ \"${JOB_STATE}\" = \"SUCCEEDED\" ]; then\n                    echo \"Job ${JOB_NAME} succeeded.\"\n                    exit 0\n                elif [ \"${JOB_STATE}\" = \"FAILED\" ]; then\n                    echo \"Job ${JOB_NAME} failed.\"\n                    exit 1\n                elif [ \"${JOB_STATE}\" = \"DELETED\" ]; then\n                    echo \"Job ${JOB_NAME} was deleted.\"\n                    exit 1\n                fi\n\n                # Wait for 30 seconds before checking again\n                sleep 30\n            done\n            "
+          ],
+          "image": "gcr.io/google.com/cloudsdktool/cloud-sdk:latest"
+        }
+      },
+      "exec-submit-batch-job-3": {
+        "container": {
+          "args": [
+            "{{$.inputs.parameters['project']}}",
+            "{{$.inputs.parameters['location']}}",
+            "{{$.inputs.parameters['job_spec']}}"
+          ],
+          "command": [
+            "sh",
+            "-c",
+            "\n            set -e -x\n\n            # Create a temporary file for the job spec\n            JOB_SPEC_FILE=$(mktemp)\n            echo \"$2\" > \"$JOB_SPEC_FILE\"\n\n            # Authenticate using the environment's service account\n            gcloud auth application-default print-access-token > /tmp/token\n            export CLOUDSDK_AUTH_ACCESS_TOKEN=$(cat /tmp/token)\n\n            # --- CORRECTED AND ROBUST JOB NAME ---\n            # This command creates a short, random, alphanumeric string that is safe for job names.\n            RANDOM_SUFFIX=$(head /dev/urandom | tr -dc a-z0-9 | head -c 8)\n            JOB_NAME=\"pipeline-job-$(date +%s)-${RANDOM_SUFFIX}\"\n            echo \"Submitting Batch job: ${JOB_NAME}\"\n\n            # Submit the job using the correct '--config' flag\n            gcloud beta batch jobs submit ${JOB_NAME} \\\n                --project=\"$0\" \\\n                --location=\"$1\" \\\n                --config=\"$JOB_SPEC_FILE\"\n\n            echo \"Job submitted. Now polling for completion...\"\n\n            # Loop until the job is no longer in a 'RUNNING' or 'QUEUED' state.\n            while true; do\n                # Get the job's state.\n                JOB_STATE=$(gcloud beta batch jobs describe ${JOB_NAME} \\\n                    --project=\"$0\" \\\n                    --location=\"$1\" \\\n                    --format=\"value(status.state)\")\n\n                echo \"Current job state: ${JOB_STATE}\"\n\n                if [ \"${JOB_STATE}\" = \"SUCCEEDED\" ]; then\n                    echo \"Job ${JOB_NAME} succeeded.\"\n                    exit 0\n                elif [ \"${JOB_STATE}\" = \"FAILED\" ]; then\n                    echo \"Job ${JOB_NAME} failed.\"\n                    exit 1\n                elif [ \"${JOB_STATE}\" = \"DELETED\" ]; then\n                    echo \"Job ${JOB_NAME} was deleted.\"\n                    exit 1\n                fi\n\n                # Wait for 30 seconds before checking again\n                sleep 30\n            done\n            "
+          ],
+          "image": "gcr.io/google.com/cloudsdktool/cloud-sdk:latest"
+        }
+      },
+      "exec-submit-batch-job-4": {
+        "container": {
+          "args": [
+            "{{$.inputs.parameters['project']}}",
+            "{{$.inputs.parameters['location']}}",
+            "{{$.inputs.parameters['job_spec']}}"
+          ],
+          "command": [
+            "sh",
+            "-c",
+            "\n            set -e -x\n\n            # Create a temporary file for the job spec\n            JOB_SPEC_FILE=$(mktemp)\n            echo \"$2\" > \"$JOB_SPEC_FILE\"\n\n            # Authenticate using the environment's service account\n            gcloud auth application-default print-access-token > /tmp/token\n            export CLOUDSDK_AUTH_ACCESS_TOKEN=$(cat /tmp/token)\n\n            # --- CORRECTED AND ROBUST JOB NAME ---\n            # This command creates a short, random, alphanumeric string that is safe for job names.\n            RANDOM_SUFFIX=$(head /dev/urandom | tr -dc a-z0-9 | head -c 8)\n            JOB_NAME=\"pipeline-job-$(date +%s)-${RANDOM_SUFFIX}\"\n            echo \"Submitting Batch job: ${JOB_NAME}\"\n\n            # Submit the job using the correct '--config' flag\n            gcloud beta batch jobs submit ${JOB_NAME} \\\n                --project=\"$0\" \\\n                --location=\"$1\" \\\n                --config=\"$JOB_SPEC_FILE\"\n\n            echo \"Job submitted. Now polling for completion...\"\n\n            # Loop until the job is no longer in a 'RUNNING' or 'QUEUED' state.\n            while true; do\n                # Get the job's state.\n                JOB_STATE=$(gcloud beta batch jobs describe ${JOB_NAME} \\\n                    --project=\"$0\" \\\n                    --location=\"$1\" \\\n                    --format=\"value(status.state)\")\n\n                echo \"Current job state: ${JOB_STATE}\"\n\n                if [ \"${JOB_STATE}\" = \"SUCCEEDED\" ]; then\n                    echo \"Job ${JOB_NAME} succeeded.\"\n                    exit 0\n                elif [ \"${JOB_STATE}\" = \"FAILED\" ]; then\n                    echo \"Job ${JOB_NAME} failed.\"\n                    exit 1\n                elif [ \"${JOB_STATE}\" = \"DELETED\" ]; then\n                    echo \"Job ${JOB_NAME} was deleted.\"\n                    exit 1\n                fi\n\n                # Wait for 30 seconds before checking again\n                sleep 30\n            done\n            "
+          ],
+          "image": "gcr.io/google.com/cloudsdktool/cloud-sdk:latest"
+        }
+      }
+    }
+  },
+  "pipelineInfo": {
+    "description": "Closed-loop Active Learning: Vizier -> FEP -> Proxy -> Screen",
+    "name": "active-learning-chemops-pipeline"
+  },
+  "root": {
+    "dag": {
+      "tasks": {
+        "submit-batch-job": {
+          "cachingOptions": {
+            "enableCache": true
+          },
+          "componentRef": {
+            "name": "comp-submit-batch-job"
+          },
+          "inputs": {
+            "parameters": {
+              "job_spec": {
+                "runtimeValue": {
+                  "constant": "{}"
+                }
+              },
+              "location": {
+                "runtimeValue": {
+                  "constant": "us-central1"
+                }
+              },
+              "project": {
+                "runtimeValue": {
+                  "constant": "lifescience-project-469915"
+                }
+              }
+            }
+          },
+          "taskInfo": {
+            "name": "Vizier Suggestion"
+          }
+        },
+        "submit-batch-job-2": {
+          "cachingOptions": {
+            "enableCache": true
+          },
+          "componentRef": {
+            "name": "comp-submit-batch-job-2"
+          },
+          "dependentTasks": [
+            "submit-batch-job"
+          ],
+          "inputs": {
+            "parameters": {
+              "job_spec": {
+                "runtimeValue": {
+                  "constant": "{}"
+                }
+              },
+              "location": {
+                "runtimeValue": {
+                  "constant": "us-central1"
+                }
+              },
+              "project": {
+                "runtimeValue": {
+                  "constant": "lifescience-project-469915"
+                }
+              }
+            }
+          },
+          "taskInfo": {
+            "name": "GROMACS FEP (Teacher)"
+          }
+        },
+        "submit-batch-job-3": {
+          "cachingOptions": {
+            "enableCache": true
+          },
+          "componentRef": {
+            "name": "comp-submit-batch-job-3"
+          },
+          "dependentTasks": [
+            "submit-batch-job-2"
+          ],
+          "inputs": {
+            "parameters": {
+              "job_spec": {
+                "runtimeValue": {
+                  "constant": "{}"
+                }
+              },
+              "location": {
+                "runtimeValue": {
+                  "constant": "us-central1"
+                }
+              },
+              "project": {
+                "runtimeValue": {
+                  "constant": "lifescience-project-469915"
+                }
+              }
+            }
+          },
+          "taskInfo": {
+            "name": "Train XGBoost Proxy"
+          }
+        },
+        "submit-batch-job-4": {
+          "cachingOptions": {
+            "enableCache": true
+          },
+          "componentRef": {
+            "name": "comp-submit-batch-job-4"
+          },
+          "dependentTasks": [
+            "submit-batch-job-3"
+          ],
+          "inputs": {
+            "parameters": {
+              "job_spec": {
+                "runtimeValue": {
+                  "constant": "{}"
+                }
+              },
+              "location": {
+                "runtimeValue": {
+                  "constant": "us-central1"
+                }
+              },
+              "project": {
+                "runtimeValue": {
+                  "constant": "lifescience-project-469915"
+                }
+              }
+            }
+          },
+          "taskInfo": {
+            "name": "Virtual Screen (Student)"
+          }
+        }
+      }
+    },
+    "inputDefinitions": {
+      "parameters": {
+        "client_id": {
+          "parameterType": "STRING"
+        },
+        "study_id": {
+          "parameterType": "STRING"
+        }
+      }
+    }
+  },
+  "schemaVersion": "2.1.0",
+  "sdkVersion": "kfp-2.15.2"
+}

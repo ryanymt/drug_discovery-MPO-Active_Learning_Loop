@@ -1,0 +1,622 @@
+{
+  "components": {
+    "comp-submit-batch-job": {
+      "executorLabel": "exec-submit-batch-job",
+      "inputDefinitions": {
+        "parameters": {
+          "job_spec": {
+            "description": "The entire Batch job specification in JSON format as a string.",
+            "parameterType": "STRING"
+          },
+          "location": {
+            "description": "The Google Cloud region for the job.",
+            "parameterType": "STRING"
+          },
+          "project": {
+            "description": "The Google Cloud project ID.",
+            "parameterType": "STRING"
+          }
+        }
+      }
+    },
+    "comp-submit-batch-job-2": {
+      "executorLabel": "exec-submit-batch-job-2",
+      "inputDefinitions": {
+        "parameters": {
+          "job_spec": {
+            "description": "The entire Batch job specification in JSON format as a string.",
+            "parameterType": "STRING"
+          },
+          "location": {
+            "description": "The Google Cloud region for the job.",
+            "parameterType": "STRING"
+          },
+          "project": {
+            "description": "The Google Cloud project ID.",
+            "parameterType": "STRING"
+          }
+        }
+      }
+    },
+    "comp-submit-batch-job-3": {
+      "executorLabel": "exec-submit-batch-job-3",
+      "inputDefinitions": {
+        "parameters": {
+          "job_spec": {
+            "description": "The entire Batch job specification in JSON format as a string.",
+            "parameterType": "STRING"
+          },
+          "location": {
+            "description": "The Google Cloud region for the job.",
+            "parameterType": "STRING"
+          },
+          "project": {
+            "description": "The Google Cloud project ID.",
+            "parameterType": "STRING"
+          }
+        }
+      }
+    },
+    "comp-submit-batch-job-4": {
+      "executorLabel": "exec-submit-batch-job-4",
+      "inputDefinitions": {
+        "parameters": {
+          "job_spec": {
+            "description": "The entire Batch job specification in JSON format as a string.",
+            "parameterType": "STRING"
+          },
+          "location": {
+            "description": "The Google Cloud region for the job.",
+            "parameterType": "STRING"
+          },
+          "project": {
+            "description": "The Google Cloud project ID.",
+            "parameterType": "STRING"
+          }
+        }
+      }
+    },
+    "comp-submit-batch-job-5": {
+      "executorLabel": "exec-submit-batch-job-5",
+      "inputDefinitions": {
+        "parameters": {
+          "job_spec": {
+            "description": "The entire Batch job specification in JSON format as a string.",
+            "parameterType": "STRING"
+          },
+          "location": {
+            "description": "The Google Cloud region for the job.",
+            "parameterType": "STRING"
+          },
+          "project": {
+            "description": "The Google Cloud project ID.",
+            "parameterType": "STRING"
+          }
+        }
+      }
+    },
+    "comp-submit-batch-job-6": {
+      "executorLabel": "exec-submit-batch-job-6",
+      "inputDefinitions": {
+        "parameters": {
+          "job_spec": {
+            "description": "The entire Batch job specification in JSON format as a string.",
+            "parameterType": "STRING"
+          },
+          "location": {
+            "description": "The Google Cloud region for the job.",
+            "parameterType": "STRING"
+          },
+          "project": {
+            "description": "The Google Cloud project ID.",
+            "parameterType": "STRING"
+          }
+        }
+      }
+    },
+    "comp-submit-batch-job-7": {
+      "executorLabel": "exec-submit-batch-job-7",
+      "inputDefinitions": {
+        "parameters": {
+          "job_spec": {
+            "description": "The entire Batch job specification in JSON format as a string.",
+            "parameterType": "STRING"
+          },
+          "location": {
+            "description": "The Google Cloud region for the job.",
+            "parameterType": "STRING"
+          },
+          "project": {
+            "description": "The Google Cloud project ID.",
+            "parameterType": "STRING"
+          }
+        }
+      }
+    },
+    "comp-submit-batch-job-8": {
+      "executorLabel": "exec-submit-batch-job-8",
+      "inputDefinitions": {
+        "parameters": {
+          "job_spec": {
+            "description": "The entire Batch job specification in JSON format as a string.",
+            "parameterType": "STRING"
+          },
+          "location": {
+            "description": "The Google Cloud region for the job.",
+            "parameterType": "STRING"
+          },
+          "project": {
+            "description": "The Google Cloud project ID.",
+            "parameterType": "STRING"
+          }
+        }
+      }
+    },
+    "comp-submit-batch-job-9": {
+      "executorLabel": "exec-submit-batch-job-9",
+      "inputDefinitions": {
+        "parameters": {
+          "job_spec": {
+            "description": "The entire Batch job specification in JSON format as a string.",
+            "parameterType": "STRING"
+          },
+          "location": {
+            "description": "The Google Cloud region for the job.",
+            "parameterType": "STRING"
+          },
+          "project": {
+            "description": "The Google Cloud project ID.",
+            "parameterType": "STRING"
+          }
+        }
+      }
+    }
+  },
+  "deploymentSpec": {
+    "executors": {
+      "exec-submit-batch-job": {
+        "container": {
+          "args": [
+            "{{$.inputs.parameters['project']}}",
+            "{{$.inputs.parameters['location']}}",
+            "{{$.inputs.parameters['job_spec']}}"
+          ],
+          "command": [
+            "sh",
+            "-c",
+            "\n            set -e -x\n\n            # Create a temporary file for the job spec\n            JOB_SPEC_FILE=$(mktemp)\n            echo \"$2\" > \"$JOB_SPEC_FILE\"\n\n            # Authenticate using the environment's service account\n            gcloud auth application-default print-access-token > /tmp/token\n            export CLOUDSDK_AUTH_ACCESS_TOKEN=$(cat /tmp/token)\n\n            # --- CORRECTED AND ROBUST JOB NAME ---\n            # This command creates a short, random, alphanumeric string that is safe for job names.\n            RANDOM_SUFFIX=$(head /dev/urandom | tr -dc a-z0-9 | head -c 8)\n            JOB_NAME=\"pipeline-job-$(date +%s)-${RANDOM_SUFFIX}\"\n            echo \"Submitting Batch job: ${JOB_NAME}\"\n\n            # Submit the job using the correct '--config' flag\n            gcloud beta batch jobs submit ${JOB_NAME} \\\n                --project=\"$0\" \\\n                --location=\"$1\" \\\n                --config=\"$JOB_SPEC_FILE\"\n\n            echo \"Job submitted. Now polling for completion...\"\n\n            # Loop until the job is no longer in a 'RUNNING' or 'QUEUED' state.\n            while true; do\n                # Get the job's state.\n                JOB_STATE=$(gcloud beta batch jobs describe ${JOB_NAME} \\\n                    --project=\"$0\" \\\n                    --location=\"$1\" \\\n                    --format=\"value(status.state)\")\n\n                echo \"Current job state: ${JOB_STATE}\"\n\n                if [ \"${JOB_STATE}\" = \"SUCCEEDED\" ]; then\n                    echo \"Job ${JOB_NAME} succeeded.\"\n                    exit 0\n                elif [ \"${JOB_STATE}\" = \"FAILED\" ]; then\n                    echo \"Job ${JOB_NAME} failed.\"\n                    exit 1\n                elif [ \"${JOB_STATE}\" = \"DELETED\" ]; then\n                    echo \"Job ${JOB_NAME} was deleted.\"\n                    exit 1\n                fi\n\n                # Wait for 30 seconds before checking again\n                sleep 30\n            done\n            "
+          ],
+          "image": "gcr.io/google.com/cloudsdktool/cloud-sdk:latest"
+        }
+      },
+      "exec-submit-batch-job-2": {
+        "container": {
+          "args": [
+            "{{$.inputs.parameters['project']}}",
+            "{{$.inputs.parameters['location']}}",
+            "{{$.inputs.parameters['job_spec']}}"
+          ],
+          "command": [
+            "sh",
+            "-c",
+            "\n            set -e -x\n\n            # Create a temporary file for the job spec\n            JOB_SPEC_FILE=$(mktemp)\n            echo \"$2\" > \"$JOB_SPEC_FILE\"\n\n            # Authenticate using the environment's service account\n            gcloud auth application-default print-access-token > /tmp/token\n            export CLOUDSDK_AUTH_ACCESS_TOKEN=$(cat /tmp/token)\n\n            # --- CORRECTED AND ROBUST JOB NAME ---\n            # This command creates a short, random, alphanumeric string that is safe for job names.\n            RANDOM_SUFFIX=$(head /dev/urandom | tr -dc a-z0-9 | head -c 8)\n            JOB_NAME=\"pipeline-job-$(date +%s)-${RANDOM_SUFFIX}\"\n            echo \"Submitting Batch job: ${JOB_NAME}\"\n\n            # Submit the job using the correct '--config' flag\n            gcloud beta batch jobs submit ${JOB_NAME} \\\n                --project=\"$0\" \\\n                --location=\"$1\" \\\n                --config=\"$JOB_SPEC_FILE\"\n\n            echo \"Job submitted. Now polling for completion...\"\n\n            # Loop until the job is no longer in a 'RUNNING' or 'QUEUED' state.\n            while true; do\n                # Get the job's state.\n                JOB_STATE=$(gcloud beta batch jobs describe ${JOB_NAME} \\\n                    --project=\"$0\" \\\n                    --location=\"$1\" \\\n                    --format=\"value(status.state)\")\n\n                echo \"Current job state: ${JOB_STATE}\"\n\n                if [ \"${JOB_STATE}\" = \"SUCCEEDED\" ]; then\n                    echo \"Job ${JOB_NAME} succeeded.\"\n                    exit 0\n                elif [ \"${JOB_STATE}\" = \"FAILED\" ]; then\n                    echo \"Job ${JOB_NAME} failed.\"\n                    exit 1\n                elif [ \"${JOB_STATE}\" = \"DELETED\" ]; then\n                    echo \"Job ${JOB_NAME} was deleted.\"\n                    exit 1\n                fi\n\n                # Wait for 30 seconds before checking again\n                sleep 30\n            done\n            "
+          ],
+          "image": "gcr.io/google.com/cloudsdktool/cloud-sdk:latest"
+        }
+      },
+      "exec-submit-batch-job-3": {
+        "container": {
+          "args": [
+            "{{$.inputs.parameters['project']}}",
+            "{{$.inputs.parameters['location']}}",
+            "{{$.inputs.parameters['job_spec']}}"
+          ],
+          "command": [
+            "sh",
+            "-c",
+            "\n            set -e -x\n\n            # Create a temporary file for the job spec\n            JOB_SPEC_FILE=$(mktemp)\n            echo \"$2\" > \"$JOB_SPEC_FILE\"\n\n            # Authenticate using the environment's service account\n            gcloud auth application-default print-access-token > /tmp/token\n            export CLOUDSDK_AUTH_ACCESS_TOKEN=$(cat /tmp/token)\n\n            # --- CORRECTED AND ROBUST JOB NAME ---\n            # This command creates a short, random, alphanumeric string that is safe for job names.\n            RANDOM_SUFFIX=$(head /dev/urandom | tr -dc a-z0-9 | head -c 8)\n            JOB_NAME=\"pipeline-job-$(date +%s)-${RANDOM_SUFFIX}\"\n            echo \"Submitting Batch job: ${JOB_NAME}\"\n\n            # Submit the job using the correct '--config' flag\n            gcloud beta batch jobs submit ${JOB_NAME} \\\n                --project=\"$0\" \\\n                --location=\"$1\" \\\n                --config=\"$JOB_SPEC_FILE\"\n\n            echo \"Job submitted. Now polling for completion...\"\n\n            # Loop until the job is no longer in a 'RUNNING' or 'QUEUED' state.\n            while true; do\n                # Get the job's state.\n                JOB_STATE=$(gcloud beta batch jobs describe ${JOB_NAME} \\\n                    --project=\"$0\" \\\n                    --location=\"$1\" \\\n                    --format=\"value(status.state)\")\n\n                echo \"Current job state: ${JOB_STATE}\"\n\n                if [ \"${JOB_STATE}\" = \"SUCCEEDED\" ]; then\n                    echo \"Job ${JOB_NAME} succeeded.\"\n                    exit 0\n                elif [ \"${JOB_STATE}\" = \"FAILED\" ]; then\n                    echo \"Job ${JOB_NAME} failed.\"\n                    exit 1\n                elif [ \"${JOB_STATE}\" = \"DELETED\" ]; then\n                    echo \"Job ${JOB_NAME} was deleted.\"\n                    exit 1\n                fi\n\n                # Wait for 30 seconds before checking again\n                sleep 30\n            done\n            "
+          ],
+          "image": "gcr.io/google.com/cloudsdktool/cloud-sdk:latest"
+        }
+      },
+      "exec-submit-batch-job-4": {
+        "container": {
+          "args": [
+            "{{$.inputs.parameters['project']}}",
+            "{{$.inputs.parameters['location']}}",
+            "{{$.inputs.parameters['job_spec']}}"
+          ],
+          "command": [
+            "sh",
+            "-c",
+            "\n            set -e -x\n\n            # Create a temporary file for the job spec\n            JOB_SPEC_FILE=$(mktemp)\n            echo \"$2\" > \"$JOB_SPEC_FILE\"\n\n            # Authenticate using the environment's service account\n            gcloud auth application-default print-access-token > /tmp/token\n            export CLOUDSDK_AUTH_ACCESS_TOKEN=$(cat /tmp/token)\n\n            # --- CORRECTED AND ROBUST JOB NAME ---\n            # This command creates a short, random, alphanumeric string that is safe for job names.\n            RANDOM_SUFFIX=$(head /dev/urandom | tr -dc a-z0-9 | head -c 8)\n            JOB_NAME=\"pipeline-job-$(date +%s)-${RANDOM_SUFFIX}\"\n            echo \"Submitting Batch job: ${JOB_NAME}\"\n\n            # Submit the job using the correct '--config' flag\n            gcloud beta batch jobs submit ${JOB_NAME} \\\n                --project=\"$0\" \\\n                --location=\"$1\" \\\n                --config=\"$JOB_SPEC_FILE\"\n\n            echo \"Job submitted. Now polling for completion...\"\n\n            # Loop until the job is no longer in a 'RUNNING' or 'QUEUED' state.\n            while true; do\n                # Get the job's state.\n                JOB_STATE=$(gcloud beta batch jobs describe ${JOB_NAME} \\\n                    --project=\"$0\" \\\n                    --location=\"$1\" \\\n                    --format=\"value(status.state)\")\n\n                echo \"Current job state: ${JOB_STATE}\"\n\n                if [ \"${JOB_STATE}\" = \"SUCCEEDED\" ]; then\n                    echo \"Job ${JOB_NAME} succeeded.\"\n                    exit 0\n                elif [ \"${JOB_STATE}\" = \"FAILED\" ]; then\n                    echo \"Job ${JOB_NAME} failed.\"\n                    exit 1\n                elif [ \"${JOB_STATE}\" = \"DELETED\" ]; then\n                    echo \"Job ${JOB_NAME} was deleted.\"\n                    exit 1\n                fi\n\n                # Wait for 30 seconds before checking again\n                sleep 30\n            done\n            "
+          ],
+          "image": "gcr.io/google.com/cloudsdktool/cloud-sdk:latest"
+        }
+      },
+      "exec-submit-batch-job-5": {
+        "container": {
+          "args": [
+            "{{$.inputs.parameters['project']}}",
+            "{{$.inputs.parameters['location']}}",
+            "{{$.inputs.parameters['job_spec']}}"
+          ],
+          "command": [
+            "sh",
+            "-c",
+            "\n            set -e -x\n\n            # Create a temporary file for the job spec\n            JOB_SPEC_FILE=$(mktemp)\n            echo \"$2\" > \"$JOB_SPEC_FILE\"\n\n            # Authenticate using the environment's service account\n            gcloud auth application-default print-access-token > /tmp/token\n            export CLOUDSDK_AUTH_ACCESS_TOKEN=$(cat /tmp/token)\n\n            # --- CORRECTED AND ROBUST JOB NAME ---\n            # This command creates a short, random, alphanumeric string that is safe for job names.\n            RANDOM_SUFFIX=$(head /dev/urandom | tr -dc a-z0-9 | head -c 8)\n            JOB_NAME=\"pipeline-job-$(date +%s)-${RANDOM_SUFFIX}\"\n            echo \"Submitting Batch job: ${JOB_NAME}\"\n\n            # Submit the job using the correct '--config' flag\n            gcloud beta batch jobs submit ${JOB_NAME} \\\n                --project=\"$0\" \\\n                --location=\"$1\" \\\n                --config=\"$JOB_SPEC_FILE\"\n\n            echo \"Job submitted. Now polling for completion...\"\n\n            # Loop until the job is no longer in a 'RUNNING' or 'QUEUED' state.\n            while true; do\n                # Get the job's state.\n                JOB_STATE=$(gcloud beta batch jobs describe ${JOB_NAME} \\\n                    --project=\"$0\" \\\n                    --location=\"$1\" \\\n                    --format=\"value(status.state)\")\n\n                echo \"Current job state: ${JOB_STATE}\"\n\n                if [ \"${JOB_STATE}\" = \"SUCCEEDED\" ]; then\n                    echo \"Job ${JOB_NAME} succeeded.\"\n                    exit 0\n                elif [ \"${JOB_STATE}\" = \"FAILED\" ]; then\n                    echo \"Job ${JOB_NAME} failed.\"\n                    exit 1\n                elif [ \"${JOB_STATE}\" = \"DELETED\" ]; then\n                    echo \"Job ${JOB_NAME} was deleted.\"\n                    exit 1\n                fi\n\n                # Wait for 30 seconds before checking again\n                sleep 30\n            done\n            "
+          ],
+          "image": "gcr.io/google.com/cloudsdktool/cloud-sdk:latest"
+        }
+      },
+      "exec-submit-batch-job-6": {
+        "container": {
+          "args": [
+            "{{$.inputs.parameters['project']}}",
+            "{{$.inputs.parameters['location']}}",
+            "{{$.inputs.parameters['job_spec']}}"
+          ],
+          "command": [
+            "sh",
+            "-c",
+            "\n            set -e -x\n\n            # Create a temporary file for the job spec\n            JOB_SPEC_FILE=$(mktemp)\n            echo \"$2\" > \"$JOB_SPEC_FILE\"\n\n            # Authenticate using the environment's service account\n            gcloud auth application-default print-access-token > /tmp/token\n            export CLOUDSDK_AUTH_ACCESS_TOKEN=$(cat /tmp/token)\n\n            # --- CORRECTED AND ROBUST JOB NAME ---\n            # This command creates a short, random, alphanumeric string that is safe for job names.\n            RANDOM_SUFFIX=$(head /dev/urandom | tr -dc a-z0-9 | head -c 8)\n            JOB_NAME=\"pipeline-job-$(date +%s)-${RANDOM_SUFFIX}\"\n            echo \"Submitting Batch job: ${JOB_NAME}\"\n\n            # Submit the job using the correct '--config' flag\n            gcloud beta batch jobs submit ${JOB_NAME} \\\n                --project=\"$0\" \\\n                --location=\"$1\" \\\n                --config=\"$JOB_SPEC_FILE\"\n\n            echo \"Job submitted. Now polling for completion...\"\n\n            # Loop until the job is no longer in a 'RUNNING' or 'QUEUED' state.\n            while true; do\n                # Get the job's state.\n                JOB_STATE=$(gcloud beta batch jobs describe ${JOB_NAME} \\\n                    --project=\"$0\" \\\n                    --location=\"$1\" \\\n                    --format=\"value(status.state)\")\n\n                echo \"Current job state: ${JOB_STATE}\"\n\n                if [ \"${JOB_STATE}\" = \"SUCCEEDED\" ]; then\n                    echo \"Job ${JOB_NAME} succeeded.\"\n                    exit 0\n                elif [ \"${JOB_STATE}\" = \"FAILED\" ]; then\n                    echo \"Job ${JOB_NAME} failed.\"\n                    exit 1\n                elif [ \"${JOB_STATE}\" = \"DELETED\" ]; then\n                    echo \"Job ${JOB_NAME} was deleted.\"\n                    exit 1\n                fi\n\n                # Wait for 30 seconds before checking again\n                sleep 30\n            done\n            "
+          ],
+          "image": "gcr.io/google.com/cloudsdktool/cloud-sdk:latest"
+        }
+      },
+      "exec-submit-batch-job-7": {
+        "container": {
+          "args": [
+            "{{$.inputs.parameters['project']}}",
+            "{{$.inputs.parameters['location']}}",
+            "{{$.inputs.parameters['job_spec']}}"
+          ],
+          "command": [
+            "sh",
+            "-c",
+            "\n            set -e -x\n\n            # Create a temporary file for the job spec\n            JOB_SPEC_FILE=$(mktemp)\n            echo \"$2\" > \"$JOB_SPEC_FILE\"\n\n            # Authenticate using the environment's service account\n            gcloud auth application-default print-access-token > /tmp/token\n            export CLOUDSDK_AUTH_ACCESS_TOKEN=$(cat /tmp/token)\n\n            # --- CORRECTED AND ROBUST JOB NAME ---\n            # This command creates a short, random, alphanumeric string that is safe for job names.\n            RANDOM_SUFFIX=$(head /dev/urandom | tr -dc a-z0-9 | head -c 8)\n            JOB_NAME=\"pipeline-job-$(date +%s)-${RANDOM_SUFFIX}\"\n            echo \"Submitting Batch job: ${JOB_NAME}\"\n\n            # Submit the job using the correct '--config' flag\n            gcloud beta batch jobs submit ${JOB_NAME} \\\n                --project=\"$0\" \\\n                --location=\"$1\" \\\n                --config=\"$JOB_SPEC_FILE\"\n\n            echo \"Job submitted. Now polling for completion...\"\n\n            # Loop until the job is no longer in a 'RUNNING' or 'QUEUED' state.\n            while true; do\n                # Get the job's state.\n                JOB_STATE=$(gcloud beta batch jobs describe ${JOB_NAME} \\\n                    --project=\"$0\" \\\n                    --location=\"$1\" \\\n                    --format=\"value(status.state)\")\n\n                echo \"Current job state: ${JOB_STATE}\"\n\n                if [ \"${JOB_STATE}\" = \"SUCCEEDED\" ]; then\n                    echo \"Job ${JOB_NAME} succeeded.\"\n                    exit 0\n                elif [ \"${JOB_STATE}\" = \"FAILED\" ]; then\n                    echo \"Job ${JOB_NAME} failed.\"\n                    exit 1\n                elif [ \"${JOB_STATE}\" = \"DELETED\" ]; then\n                    echo \"Job ${JOB_NAME} was deleted.\"\n                    exit 1\n                fi\n\n                # Wait for 30 seconds before checking again\n                sleep 30\n            done\n            "
+          ],
+          "image": "gcr.io/google.com/cloudsdktool/cloud-sdk:latest"
+        }
+      },
+      "exec-submit-batch-job-8": {
+        "container": {
+          "args": [
+            "{{$.inputs.parameters['project']}}",
+            "{{$.inputs.parameters['location']}}",
+            "{{$.inputs.parameters['job_spec']}}"
+          ],
+          "command": [
+            "sh",
+            "-c",
+            "\n            set -e -x\n\n            # Create a temporary file for the job spec\n            JOB_SPEC_FILE=$(mktemp)\n            echo \"$2\" > \"$JOB_SPEC_FILE\"\n\n            # Authenticate using the environment's service account\n            gcloud auth application-default print-access-token > /tmp/token\n            export CLOUDSDK_AUTH_ACCESS_TOKEN=$(cat /tmp/token)\n\n            # --- CORRECTED AND ROBUST JOB NAME ---\n            # This command creates a short, random, alphanumeric string that is safe for job names.\n            RANDOM_SUFFIX=$(head /dev/urandom | tr -dc a-z0-9 | head -c 8)\n            JOB_NAME=\"pipeline-job-$(date +%s)-${RANDOM_SUFFIX}\"\n            echo \"Submitting Batch job: ${JOB_NAME}\"\n\n            # Submit the job using the correct '--config' flag\n            gcloud beta batch jobs submit ${JOB_NAME} \\\n                --project=\"$0\" \\\n                --location=\"$1\" \\\n                --config=\"$JOB_SPEC_FILE\"\n\n            echo \"Job submitted. Now polling for completion...\"\n\n            # Loop until the job is no longer in a 'RUNNING' or 'QUEUED' state.\n            while true; do\n                # Get the job's state.\n                JOB_STATE=$(gcloud beta batch jobs describe ${JOB_NAME} \\\n                    --project=\"$0\" \\\n                    --location=\"$1\" \\\n                    --format=\"value(status.state)\")\n\n                echo \"Current job state: ${JOB_STATE}\"\n\n                if [ \"${JOB_STATE}\" = \"SUCCEEDED\" ]; then\n                    echo \"Job ${JOB_NAME} succeeded.\"\n                    exit 0\n                elif [ \"${JOB_STATE}\" = \"FAILED\" ]; then\n                    echo \"Job ${JOB_NAME} failed.\"\n                    exit 1\n                elif [ \"${JOB_STATE}\" = \"DELETED\" ]; then\n                    echo \"Job ${JOB_NAME} was deleted.\"\n                    exit 1\n                fi\n\n                # Wait for 30 seconds before checking again\n                sleep 30\n            done\n            "
+          ],
+          "image": "gcr.io/google.com/cloudsdktool/cloud-sdk:latest"
+        }
+      },
+      "exec-submit-batch-job-9": {
+        "container": {
+          "args": [
+            "{{$.inputs.parameters['project']}}",
+            "{{$.inputs.parameters['location']}}",
+            "{{$.inputs.parameters['job_spec']}}"
+          ],
+          "command": [
+            "sh",
+            "-c",
+            "\n            set -e -x\n\n            # Create a temporary file for the job spec\n            JOB_SPEC_FILE=$(mktemp)\n            echo \"$2\" > \"$JOB_SPEC_FILE\"\n\n            # Authenticate using the environment's service account\n            gcloud auth application-default print-access-token > /tmp/token\n            export CLOUDSDK_AUTH_ACCESS_TOKEN=$(cat /tmp/token)\n\n            # --- CORRECTED AND ROBUST JOB NAME ---\n            # This command creates a short, random, alphanumeric string that is safe for job names.\n            RANDOM_SUFFIX=$(head /dev/urandom | tr -dc a-z0-9 | head -c 8)\n            JOB_NAME=\"pipeline-job-$(date +%s)-${RANDOM_SUFFIX}\"\n            echo \"Submitting Batch job: ${JOB_NAME}\"\n\n            # Submit the job using the correct '--config' flag\n            gcloud beta batch jobs submit ${JOB_NAME} \\\n                --project=\"$0\" \\\n                --location=\"$1\" \\\n                --config=\"$JOB_SPEC_FILE\"\n\n            echo \"Job submitted. Now polling for completion...\"\n\n            # Loop until the job is no longer in a 'RUNNING' or 'QUEUED' state.\n            while true; do\n                # Get the job's state.\n                JOB_STATE=$(gcloud beta batch jobs describe ${JOB_NAME} \\\n                    --project=\"$0\" \\\n                    --location=\"$1\" \\\n                    --format=\"value(status.state)\")\n\n                echo \"Current job state: ${JOB_STATE}\"\n\n                if [ \"${JOB_STATE}\" = \"SUCCEEDED\" ]; then\n                    echo \"Job ${JOB_NAME} succeeded.\"\n                    exit 0\n                elif [ \"${JOB_STATE}\" = \"FAILED\" ]; then\n                    echo \"Job ${JOB_NAME} failed.\"\n                    exit 1\n                elif [ \"${JOB_STATE}\" = \"DELETED\" ]; then\n                    echo \"Job ${JOB_NAME} was deleted.\"\n                    exit 1\n                fi\n\n                # Wait for 30 seconds before checking again\n                sleep 30\n            done\n            "
+          ],
+          "image": "gcr.io/google.com/cloudsdktool/cloud-sdk:latest"
+        }
+      }
+    }
+  },
+  "pipelineInfo": {
+    "description": "V4: Generation -> Filtering -> Join -> Selection -> FEP",
+    "name": "drug-discovery-v4-active-learning"
+  },
+  "root": {
+    "dag": {
+      "tasks": {
+        "submit-batch-job": {
+          "cachingOptions": {
+            "enableCache": true
+          },
+          "componentRef": {
+            "name": "comp-submit-batch-job"
+          },
+          "inputs": {
+            "parameters": {
+              "job_spec": {
+                "runtimeValue": {
+                  "constant": "{\"taskGroups\": [{\"taskCount\": 1, \"parallelism\": 1, \"taskSpec\": {\"runnables\": [{\"container\": {\"imageUri\": \"us-central1-docker.pkg.dev/gcda-apac-sc/drug-discovery-containers/pocket2mol:v3\", \"commands\": [\"/bin/bash\", \"-c\", \"source /opt/conda/etc/profile.d/conda.sh && conda activate Pocket2Mol && export LD_LIBRARY_PATH=/usr/local/nvidia/lib64:/opt/conda/envs/Pocket2Mol/lib:$LD_LIBRARY_PATH && cp configs/sample_for_pdb.yml /tmp/run_config.yml && sed -i 's|./ckpt/pretrained_Pocket2Mol.pt|/mnt/disks/gcs/input/models/pretrained.pt|g' /tmp/run_config.yml && sed -i 's|num_samples: 100|num_samples: 500|g' /tmp/run_config.yml && python sample_for_pdb.py --config /tmp/run_config.yml  --pdb_path ./example/4yhj.pdb --center '0.517,27.062,8.972' --outdir /mnt/disks/gcs/output/v4_loop_1 --rejection_threshold -5.0\"]}}], \"computeResource\": {\"cpuMilli\": 4000, \"memoryMib\": 16384}, \"volumes\": [{\"gcs\": {\"remotePath\": \"ryanymt/input\"}, \"mountPath\": \"/mnt/disks/gcs/input\"}, {\"gcs\": {\"remotePath\": \"ryanymt/output\"}, \"mountPath\": \"/mnt/disks/gcs/output\"}]}}], \"allocationPolicy\": {\"instances\": [{\"installGpuDrivers\": true, \"policy\": {\"provisioningModel\": \"SPOT\", \"machineType\": \"g2-standard-4\", \"accelerators\": [{\"type\": \"nvidia-l4\", \"count\": \"1\", \"installGpuDrivers\": true}]}}]}, \"logsPolicy\": {\"destination\": \"CLOUD_LOGGING\"}}"
+                }
+              },
+              "location": {
+                "runtimeValue": {
+                  "constant": "us-central1"
+                }
+              },
+              "project": {
+                "runtimeValue": {
+                  "constant": "gcda-apac-sc"
+                }
+              }
+            }
+          },
+          "taskInfo": {
+            "name": "1. Generation (Pocket2Mol)"
+          }
+        },
+        "submit-batch-job-2": {
+          "cachingOptions": {
+            "enableCache": true
+          },
+          "componentRef": {
+            "name": "comp-submit-batch-job-2"
+          },
+          "dependentTasks": [
+            "submit-batch-job"
+          ],
+          "inputs": {
+            "parameters": {
+              "job_spec": {
+                "runtimeValue": {
+                  "constant": "{\"taskGroups\": [{\"taskCount\": 1, \"parallelism\": 1, \"taskSpec\": {\"runnables\": [{\"container\": {\"imageUri\": \"us-central1-docker.pkg.dev/gcda-apac-sc/drug-discovery-containers/gnina\", \"commands\": [\"/bin/bash\", \"-c\", \"/usr/local/bin/run_gnina_docking.sh /mnt/disks/gcs/input/v4_loop_1/SMILES.txt /mnt/disks/gcs/input/1aki.pdb /mnt/disks/gcs/output/docking_results 0\"]}}], \"computeResource\": {\"cpuMilli\": 4000, \"memoryMib\": 16384}, \"volumes\": [{\"gcs\": {\"remotePath\": \"ryanymt/input\"}, \"mountPath\": \"/mnt/disks/gcs/input\"}, {\"gcs\": {\"remotePath\": \"ryanymt/output\"}, \"mountPath\": \"/mnt/disks/gcs/output\"}, {\"gcs\": {\"remotePath\": \"ryanymt/input\"}, \"mountPath\": \"/mnt/disks/gcs/data\"}]}}], \"allocationPolicy\": {\"instances\": [{\"installGpuDrivers\": true, \"policy\": {\"provisioningModel\": \"SPOT\", \"bootDisk\": {\"sizeGb\": 100}, \"machineType\": \"g2-standard-4\", \"accelerators\": [{\"type\": \"nvidia-l4\", \"count\": \"1\", \"installGpuDrivers\": true}]}}]}, \"logsPolicy\": {\"destination\": \"CLOUD_LOGGING\"}}"
+                }
+              },
+              "location": {
+                "runtimeValue": {
+                  "constant": "us-central1"
+                }
+              },
+              "project": {
+                "runtimeValue": {
+                  "constant": "gcda-apac-sc"
+                }
+              }
+            }
+          },
+          "taskInfo": {
+            "name": "2a. Filter (Gnina)"
+          }
+        },
+        "submit-batch-job-3": {
+          "cachingOptions": {
+            "enableCache": true
+          },
+          "componentRef": {
+            "name": "comp-submit-batch-job-3"
+          },
+          "dependentTasks": [
+            "submit-batch-job"
+          ],
+          "inputs": {
+            "parameters": {
+              "job_spec": {
+                "runtimeValue": {
+                  "constant": "{\"taskGroups\": [{\"taskCount\": 1, \"parallelism\": 1, \"taskSpec\": {\"runnables\": [{\"container\": {\"imageUri\": \"us-central1-docker.pkg.dev/gcda-apac-sc/drug-discovery-containers/txgemma:v2\", \"entrypoint\": \"/bin/bash\", \"commands\": [\"-c\", \"export LD_LIBRARY_PATH=/usr/local/nvidia/lib64:/usr/local/cuda/lib64:$LD_LIBRARY_PATH && pip install transformers==4.42.4 && cp /mnt/disks/gcs/data/scripts/predict_batched.py /tmp/predict.py && python3 /tmp/predict.py --input-file /mnt/disks/gcs/input/v4_loop_1/SMILES.txt --output-file /mnt/disks/gcs/output/txgemma_results.csv\"]}}], \"environment\": {\"variables\": {\"HF_TOKEN\": \"SECRET_PLACEHOLDER\"}}, \"computeResource\": {\"cpuMilli\": 4000, \"memoryMib\": 16384}, \"volumes\": [{\"gcs\": {\"remotePath\": \"ryanymt/output\"}, \"mountPath\": \"/mnt/disks/gcs/input\"}, {\"gcs\": {\"remotePath\": \"ryanymt/output\"}, \"mountPath\": \"/mnt/disks/gcs/output\"}, {\"gcs\": {\"remotePath\": \"ryanymt/input\"}, \"mountPath\": \"/mnt/disks/gcs/data\"}]}}], \"allocationPolicy\": {\"instances\": [{\"installGpuDrivers\": true, \"policy\": {\"provisioningModel\": \"SPOT\", \"bootDisk\": {\"sizeGb\": 100}, \"machineType\": \"g2-standard-24\", \"accelerators\": [{\"type\": \"nvidia-l4\", \"count\": \"2\", \"installGpuDrivers\": true}]}}]}, \"logsPolicy\": {\"destination\": \"CLOUD_LOGGING\"}}"
+                }
+              },
+              "location": {
+                "runtimeValue": {
+                  "constant": "us-central1"
+                }
+              },
+              "project": {
+                "runtimeValue": {
+                  "constant": "gcda-apac-sc"
+                }
+              }
+            }
+          },
+          "taskInfo": {
+            "name": "2b. Filter (TxGemma)"
+          }
+        },
+        "submit-batch-job-4": {
+          "cachingOptions": {
+            "enableCache": true
+          },
+          "componentRef": {
+            "name": "comp-submit-batch-job-4"
+          },
+          "dependentTasks": [
+            "submit-batch-job"
+          ],
+          "inputs": {
+            "parameters": {
+              "job_spec": {
+                "runtimeValue": {
+                  "constant": "{\"taskGroups\": [{\"taskCount\": 1, \"parallelism\": 1, \"taskSpec\": {\"runnables\": [{\"container\": {\"imageUri\": \"us-central1-docker.pkg.dev/gcda-apac-sc/drug-discovery-containers/rdkit\", \"commands\": [\"python\", \"/app/score.py\", \"--input_csv\", \"/mnt/disks/gcs/input/docking_results.csv\", \"--output_csv\", \"/mnt/disks/gcs/output/rdkit_scores.csv\"]}}], \"computeResource\": {\"cpuMilli\": 1000, \"memoryMib\": 2048}, \"volumes\": [{\"gcs\": {\"remotePath\": \"ryanymt/output\"}, \"mountPath\": \"/mnt/disks/gcs/input\"}, {\"gcs\": {\"remotePath\": \"ryanymt/output\"}, \"mountPath\": \"/mnt/disks/gcs/output\"}]}}], \"allocationPolicy\": {\"instances\": [{\"policy\": {\"provisioningModel\": \"STANDARD\", \"machineType\": \"e2-standard-2\"}}]}, \"logsPolicy\": {\"destination\": \"CLOUD_LOGGING\"}}"
+                }
+              },
+              "location": {
+                "runtimeValue": {
+                  "constant": "us-central1"
+                }
+              },
+              "project": {
+                "runtimeValue": {
+                  "constant": "gcda-apac-sc"
+                }
+              }
+            }
+          },
+          "taskInfo": {
+            "name": "2c. Filter (RDKit)"
+          }
+        },
+        "submit-batch-job-5": {
+          "cachingOptions": {
+            "enableCache": true
+          },
+          "componentRef": {
+            "name": "comp-submit-batch-job-5"
+          },
+          "dependentTasks": [
+            "submit-batch-job-2",
+            "submit-batch-job-3",
+            "submit-batch-job-4"
+          ],
+          "inputs": {
+            "parameters": {
+              "job_spec": {
+                "runtimeValue": {
+                  "constant": "{\"taskGroups\": [{\"taskCount\": 1, \"parallelism\": 1, \"taskSpec\": {\"runnables\": [{\"container\": {\"imageUri\": \"us-central1-docker.pkg.dev/gcda-apac-sc/drug-discovery-containers/joiner:v1\", \"entrypoint\": \"python\", \"commands\": [\"python3\", \"join_results.py\", \"--smiles\", \"/mnt/disks/gcs/input/v4_loop_1/SMILES.txt\", \"--rdkit\", \"/mnt/disks/gcs/input/v4_loop_1/rdkit_scores.csv\", \"--txgemma\", \"/mnt/disks/gcs/input/v4_loop_1/txgemma_results.csv\", \"--gnina\", \"/mnt/disks/gcs/input/v4_loop_1/gnina_out\", \"--output\", \"/mnt/disks/gcs/output/v4_loop_1/joined_results.csv\", \"--batch_id\", \"v4_loop_1\"], \"volumes\": [\"/mnt/disks/gcs/input:/mnt/disks/gcs/input:rw\", \"/mnt/disks/gcs/output:/mnt/disks/gcs/output:rw\"]}}], \"computeResource\": {\"cpuMilli\": 2000, \"memoryMib\": 4096}, \"volumes\": [{\"gcs\": {\"remotePath\": \"ryanymt/output\"}, \"mountPath\": \"/mnt/disks/gcs/input\"}, {\"gcs\": {\"remotePath\": \"ryanymt/output\"}, \"mountPath\": \"/mnt/disks/gcs/output\"}]}}], \"allocationPolicy\": {\"instances\": [{\"policy\": {\"machineType\": \"n1-standard-2\", \"provisioningModel\": \"STANDARD\"}}], \"serviceAccount\": {\"email\": \"1019380215650-compute@developer.gserviceaccount.com\", \"scopes\": [\"https://www.googleapis.com/auth/cloud-platform\"]}}, \"logsPolicy\": {\"destination\": \"CLOUD_LOGGING\"}}"
+                }
+              },
+              "location": {
+                "runtimeValue": {
+                  "constant": "us-central1"
+                }
+              },
+              "project": {
+                "runtimeValue": {
+                  "constant": "gcda-apac-sc"
+                }
+              }
+            }
+          },
+          "taskInfo": {
+            "name": "3. Data Joiner"
+          }
+        },
+        "submit-batch-job-6": {
+          "cachingOptions": {
+            "enableCache": true
+          },
+          "componentRef": {
+            "name": "comp-submit-batch-job-6"
+          },
+          "dependentTasks": [
+            "submit-batch-job-5"
+          ],
+          "inputs": {
+            "parameters": {
+              "job_spec": {
+                "runtimeValue": {
+                  "constant": "{\"taskGroups\": [{\"taskCount\": 1, \"parallelism\": 1, \"taskSpec\": {\"runnables\": [{\"container\": {\"imageUri\": \"us-central1-docker.pkg.dev/gcda-apac-sc/drug-discovery-containers/joiner:v1\", \"entrypoint\": \"python\", \"commands\": [\"python3\", \"run_vizier_optimization.py\", \"--output\", \"/mnt/disks/gcs/output/v4_loop_1/selected_candidates.csv\"], \"volumes\": [\"/mnt/disks/gcs/input:/mnt/disks/gcs/input:rw\", \"/mnt/disks/gcs/output:/mnt/disks/gcs/output:rw\"]}}], \"computeResource\": {\"cpuMilli\": 2000, \"memoryMib\": 4096}, \"volumes\": [{\"gcs\": {\"remotePath\": \"ryanymt/output\"}, \"mountPath\": \"/mnt/disks/gcs/input\"}, {\"gcs\": {\"remotePath\": \"ryanymt/output\"}, \"mountPath\": \"/mnt/disks/gcs/output\"}]}}], \"allocationPolicy\": {\"instances\": [{\"policy\": {\"machineType\": \"n1-standard-2\", \"provisioningModel\": \"STANDARD\"}}], \"serviceAccount\": {\"email\": \"1019380215650-compute@developer.gserviceaccount.com\", \"scopes\": [\"https://www.googleapis.com/auth/cloud-platform\"]}}, \"logsPolicy\": {\"destination\": \"CLOUD_LOGGING\"}}"
+                }
+              },
+              "location": {
+                "runtimeValue": {
+                  "constant": "us-central1"
+                }
+              },
+              "project": {
+                "runtimeValue": {
+                  "constant": "gcda-apac-sc"
+                }
+              }
+            }
+          },
+          "taskInfo": {
+            "name": "4. Selection (Vizier)"
+          }
+        },
+        "submit-batch-job-7": {
+          "cachingOptions": {
+            "enableCache": true
+          },
+          "componentRef": {
+            "name": "comp-submit-batch-job-7"
+          },
+          "dependentTasks": [
+            "submit-batch-job-6"
+          ],
+          "inputs": {
+            "parameters": {
+              "job_spec": {
+                "runtimeValue": {
+                  "constant": "{\"taskGroups\": [{\"taskCount\": 1, \"parallelism\": 1, \"taskSpec\": {\"runnables\": [{\"container\": {\"imageUri\": \"us-central1-docker.pkg.dev/gcda-apac-sc/drug-discovery-containers/gromacs-fep:v1\", \"commands\": [\"/bin/bash\", \"-c\", \"/usr/local/bin/run_fep.sh --setup\"]}}], \"computeResource\": {\"cpuMilli\": 4000, \"memoryMib\": 15360}, \"volumes\": [{\"gcs\": {\"remotePath\": \"ryanymt/input\"}, \"mountPath\": \"/mnt/disks/gcs/input\"}, {\"gcs\": {\"remotePath\": \"drug-discovery-mvp-md-trajectories\"}, \"mountPath\": \"/mnt/disks/gcs/output\"}]}}], \"allocationPolicy\": {\"instances\": [{\"installGpuDrivers\": true, \"policy\": {\"provisioningModel\": \"SPOT\", \"machineType\": \"g2-standard-4\", \"accelerators\": [{\"type\": \"nvidia-l4\", \"count\": \"1\", \"installGpuDrivers\": true}]}}], \"network\": {\"networkInterfaces\": [{\"network\": \"projects/gcda-apac-sc/global/networks/default\", \"subnetwork\": \"projects/gcda-apac-sc/regions/us-central1/subnetworks/default\"}]}}, \"logsPolicy\": {\"destination\": \"CLOUD_LOGGING\"}}"
+                }
+              },
+              "location": {
+                "runtimeValue": {
+                  "constant": "us-central1"
+                }
+              },
+              "project": {
+                "runtimeValue": {
+                  "constant": "gcda-apac-sc"
+                }
+              }
+            }
+          },
+          "taskInfo": {
+            "name": "5a. FEP Setup"
+          }
+        },
+        "submit-batch-job-8": {
+          "cachingOptions": {
+            "enableCache": true
+          },
+          "componentRef": {
+            "name": "comp-submit-batch-job-8"
+          },
+          "dependentTasks": [
+            "submit-batch-job-7"
+          ],
+          "inputs": {
+            "parameters": {
+              "job_spec": {
+                "runtimeValue": {
+                  "constant": "{\"taskGroups\": [{\"taskCount\": \"13\", \"parallelism\": \"13\", \"taskSpec\": {\"runnables\": [{\"container\": {\"imageUri\": \"us-central1-docker.pkg.dev/gcda-apac-sc/drug-discovery-containers/gromacs-fep:v1\", \"commands\": [\"/bin/bash\", \"-c\", \"/usr/local/bin/run_fep.sh --run $BATCH_TASK_INDEX\"]}}], \"computeResource\": {\"cpuMilli\": 4000, \"memoryMib\": 15360}, \"volumes\": [{\"gcs\": {\"remotePath\": \"ryanymt/input\"}, \"mountPath\": \"/mnt/disks/gcs/input\"}, {\"gcs\": {\"remotePath\": \"drug-discovery-mvp-md-trajectories\"}, \"mountPath\": \"/mnt/disks/gcs/output\"}]}}], \"allocationPolicy\": {\"instances\": [{\"installGpuDrivers\": true, \"policy\": {\"provisioningModel\": \"SPOT\", \"machineType\": \"g2-standard-4\", \"accelerators\": [{\"type\": \"nvidia-l4\", \"count\": \"1\", \"installGpuDrivers\": true}]}}], \"network\": {\"networkInterfaces\": [{\"network\": \"projects/gcda-apac-sc/global/networks/default\", \"subnetwork\": \"projects/gcda-apac-sc/regions/us-central1/subnetworks/default\"}]}}, \"logsPolicy\": {\"destination\": \"CLOUD_LOGGING\"}}"
+                }
+              },
+              "location": {
+                "runtimeValue": {
+                  "constant": "us-central1"
+                }
+              },
+              "project": {
+                "runtimeValue": {
+                  "constant": "gcda-apac-sc"
+                }
+              }
+            }
+          },
+          "taskInfo": {
+            "name": "5b. FEP Run (Parallel)"
+          }
+        },
+        "submit-batch-job-9": {
+          "cachingOptions": {
+            "enableCache": true
+          },
+          "componentRef": {
+            "name": "comp-submit-batch-job-9"
+          },
+          "dependentTasks": [
+            "submit-batch-job-8"
+          ],
+          "inputs": {
+            "parameters": {
+              "job_spec": {
+                "runtimeValue": {
+                  "constant": "{\"taskGroups\": [{\"taskCount\": 1, \"parallelism\": 1, \"taskSpec\": {\"runnables\": [{\"container\": {\"imageUri\": \"us-central1-docker.pkg.dev/gcda-apac-sc/drug-discovery-containers/gromacs-fep:v1\", \"commands\": [\"/bin/bash\", \"-c\", \"/usr/local/bin/run_fep.sh --analyze\"]}}], \"computeResource\": {\"cpuMilli\": 4000, \"memoryMib\": 15360}, \"volumes\": [{\"gcs\": {\"remotePath\": \"ryanymt/input\"}, \"mountPath\": \"/mnt/disks/gcs/input\"}, {\"gcs\": {\"remotePath\": \"drug-discovery-mvp-md-trajectories\"}, \"mountPath\": \"/mnt/disks/gcs/output\"}]}}], \"allocationPolicy\": {\"instances\": [{\"installGpuDrivers\": true, \"policy\": {\"provisioningModel\": \"SPOT\", \"machineType\": \"g2-standard-4\", \"accelerators\": [{\"type\": \"nvidia-l4\", \"count\": \"1\", \"installGpuDrivers\": true}]}}], \"network\": {\"networkInterfaces\": [{\"network\": \"projects/gcda-apac-sc/global/networks/default\", \"subnetwork\": \"projects/gcda-apac-sc/regions/us-central1/subnetworks/default\"}]}}, \"logsPolicy\": {\"destination\": \"CLOUD_LOGGING\"}}"
+                }
+              },
+              "location": {
+                "runtimeValue": {
+                  "constant": "us-central1"
+                }
+              },
+              "project": {
+                "runtimeValue": {
+                  "constant": "gcda-apac-sc"
+                }
+              }
+            }
+          },
+          "taskInfo": {
+            "name": "5c. FEP Analysis"
+          }
+        }
+      }
+    }
+  },
+  "schemaVersion": "2.1.0",
+  "sdkVersion": "kfp-2.15.2"
+}
