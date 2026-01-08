@@ -7,7 +7,7 @@ This repository documents the architecture and results of a **Closed-Loop AI Dru
 
 By orchestrating Generative AI (Pocket2Mol), Physics-Based Simulation (MM-GBSA), and Surrogate Modeling (XGBoost), the platform demonstrates a scalable Active Learning Loop capable of optimizing molecular affinity and properties over successive generation cycles.
 
-*Note: This repository contains architectural documentation and result artifacts. Development code and container definitions are omitted as of now.*
+*Note: This repository contains architectural documentation and result artifacts. Only the skeleton of development code and container definitions are included.*
 
 ### The Active Learning Concept
 ![Generic Active Learning Loop](diagrams/Active_Learning_loop_generic.png)
@@ -28,7 +28,7 @@ By orchestrating Generative AI (Pocket2Mol), Physics-Based Simulation (MM-GBSA),
 *   **High Quality Baseline:** The pre-trained Pocket2Mol model (Cycle 1) already produced high-affinity candidates (-36.68 kcal/mol mean), setting a very high bar.
 *   **Incremental Gain:** Fine-tuning on the "Elite" dataset (Cycle 2) shifted the distribution further, improving the Hit Rate to **94.5%** and finding safe, high-affinity candidates at a higher rate.
 *   **Scale:** Validated architecture for 100,000+ molecules using Google Cloud Batch.
-*   **Efficiency:** Achieved full-loop iteration (Gen -> Oracle -> Train) in **~15 hours** for <$900 USD, scalable to **3 hours** with 500 GPUs.
+*   **Efficiency:** Achieved full-loop iteration (Gen -> Oracle -> Train) in **~15 hours** for <$900 USD. Can be scaled to 1000 GPUs and further optimise low GPU utilisation tasks and bring the run durtaion down to **~1 hour** per loop.
 
 ## Architecture Highlights
 The system implements a specific MPO (Multi-Parameter Optimization) strategy using the following components:
