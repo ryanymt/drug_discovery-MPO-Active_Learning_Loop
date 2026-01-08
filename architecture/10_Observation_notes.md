@@ -23,6 +23,7 @@ Comparing the Baseline Generation (`prod_100k_v1`) against the Fine-Tuned Genera
 1.  **Optimization Success**: The model successfully learned from the "Elite" dataset. The **Hit Rate (< -30 kcal/mol)** improved by **2.3%**, indicating the generator is wasting less time on weak binders.
 2.  **No Mode Collapse**: Despite fine-tuning on a clustered subset, **100% of the generated molecules were unique**. The model has *not* collapsed into memorizing the training data or outputting duplicates.
 3.  **Safety Trade-off**: A slight dip in the Safety Rate (-1.3%) was observed. This suggests a potential correlation between high affinity features and toxicity features (e.g., reactive groups or excessive lipophilicity).
+4. **The weaklink**: The quality of the surrogate model is the most important part in this pipeline. In this experiment run, 1000 filtered candidates (top 800 plus random 200) was used for Gromac MM-GBSA scoring. Filtering was done in the steps of Non-Toxic > Top QED > Top Gnina. This seem to have filter candidate from similar zone. No outlier score predictions from Surrogate model observed.
 
 ## 3. Structural Dynamics (Scaffold Exploitation)
 While exact structural visualization requires SMILES data (currently unavailable in the result CSVs), the metrics strongly point to **Scaffold Exploitation**:
@@ -33,6 +34,8 @@ While exact structural visualization requires SMILES data (currently unavailable
 ## 4. Conclusion & Recommendations
 The system resembles a "Hill Climber", systematically improving candidates within a high-value region.
 
-### Strategy for Cycle 3
-1.  **Enforce Diversity**: To prevent getting stuck in this local optimum, we must continue using the "Clustering" selection strategy.
+
+### Strategy for New Experimental run
+1.  **Enforce Diversity**: To prevent getting stuck in this local optimum, continue to try and improve the "Clustering" selection strategy.
 2.  **Monitor Safety**: If the Safety Rate drops below 90%, implement **Constraint-Based Generation** to penalize toxicophores during inference.
+3.  **Surrogate Model**: Even with divserse set of tarining data, other type of models like CNN models could be tested.

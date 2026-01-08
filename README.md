@@ -23,6 +23,8 @@ By orchestrating Generative AI (Pocket2Mol), Physics-Based Simulation (MM-GBSA),
 
 * Affinity score are lower the better. 
 
+**Detailed observation** on the **gaps and potential improvements** of this experiment can be found in [10.Observation_notes.md](architecture/10.Observation_notes.md) file. 
+
 *   **High Quality Baseline:** The pre-trained Pocket2Mol model (Cycle 1) already produced high-affinity candidates (-36.68 kcal/mol mean), setting a very high bar.
 *   **Incremental Gain:** Fine-tuning on the "Elite" dataset (Cycle 2) shifted the distribution further, improving the Hit Rate to **94.5%** and finding safe, high-affinity candidates at a higher rate.
 *   **Scale:** Validated architecture for 100,000+ molecules using Google Cloud Batch.
