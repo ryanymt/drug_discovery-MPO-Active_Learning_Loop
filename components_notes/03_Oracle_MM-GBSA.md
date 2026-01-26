@@ -32,6 +32,6 @@ The production oracle utilizes **MM-GBSA (Molecular Mechanics-Generalized Born S
 ## 2. Development Oracle: Mock Score
 To enable rapid iteration of the pipeline logic without incurring cloud costs, a synthetic oracle is used during development.
 
-*   **Logic:** $Score = \text{Docking} + \text{Noise} + \text{QED\_Penalty}$.
+*   **Logic:** $Score = {Docking} + {Noise} + {QED_Penalty}.
 *   **Role:** Validates the software architecture (BigQuery, Training, Loop) for $0 cost.
 *   **Switch:** Controlled by the pipeline definition (`al_pipeline_def.py`).
