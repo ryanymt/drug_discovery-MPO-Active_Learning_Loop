@@ -39,7 +39,7 @@ A high-affinity binder (**-66.25 kcal/mol**) was successfully identified, and a 
 #### Vertex AI Training
 | Component | CPU | Memory | GPU | Duration | Notes |
 | :--- | :--- | :--- | :--- | :--- | :--- | 
-| **Pocket2Mol Fine-Tuning** | 12 | 85GB | A100 40GB | 1 | 1 | 2h 45 min | Pocket2Mol fine-tuning on 10k molecules |
+| **Pocket2Mol Fine-Tuning** | 12 | 85GB | A100 40GB | 2h 45 min | Pocket2Mol fine-tuning on 10k molecules |
 
 
 ---
